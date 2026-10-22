@@ -354,7 +354,7 @@ public class MainActivity extends Activity {
                 }
                 libBase = suService.findBaseAddress(ffPid, NATIVE_LIB);
                 if (libBase == -1) {
-                    runOnUiThread(() -> Toast.makeText(this, "libil2cpp.so nao encontrada!", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> Toast.makeText(this, "libil2cpp.so nao encontrada!", Toast.LENGTH_SHORT).show());
                     return;
                 }
                 connected = true;
