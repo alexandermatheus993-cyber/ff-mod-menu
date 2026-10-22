@@ -1,111 +1,105 @@
 package com.ff.modmenu;
-
-import android.app.Activity;
+import android.application.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Log;
+import rika.shizuku.Shizuku;
 
-import rikka.shizuku.Shizuku;
+public class MainActivity^[™ÈXÝ]š]HÂˆš]˜]HÝ]XÈš[˜[Ýš[™ÈQÈH‘‘“[ÙY[HŽÂˆš]˜]H^šY]ÈÝ]\Õ^Â‚ˆš]˜]HÚ^ZÙK“Ûš[™\”™XÙZ]™Y\Ý[™\ˆš[™\”™XÙZ]™Y\Ý[™\ˆH
 
-public class MainActivity extends Activity {
+HOˆÂˆÙË™
+QË”Ú^ZÙHš[™\ˆ™XÙZ]™YŠNÂˆÚXÚÔÚ^š]ZÐ[™š[™
 
-    private static final String TAG = "FFModMenu";
-    private static final int OVERLAY_PERMISSION_CODE = 1234;
+NÂˆNÂ‚ˆš]˜]HÚ^ZÙK“Û”™\]Y\Ý\›Z\ÜÚ[Û”™\Ý[\Ý[™\ˆ\›Z\ÜÚ[Û”™\Ý[\Ý[™\ˆH
+™\]Y\ÝÛÙKÜ˜[™\Ý[
+HOˆÂˆYˆ
+Ü˜[™\Ý[OH
+HÂˆÚXÚÔÚ^ZÐ[™š[™
 
-    private final Shizuku.OnBinderReceivedListener binderReceivedListener = () -> {
-        Log.d(TAG, "Shizuku binder received!");
-        checkShizukuPermission();
-    };
+NÂˆH[ÙHÂˆ\]TÝ]\Ê”T“RTÔÐSÈ‘QÐQHL‹‘‘‘
+NÂˆBˆNÂ‚ˆÝ™\œšYBˆ›ÝXÝY›ÚYÛÜ™X]J[™HØ]™Y[œÝ[˜ÙTÝ]JHÂˆÝ\\‹›ÛÜ™X]JØ]™Y[œÝ[˜ÙTÝ]JNÂˆÙ]ÛÛ[šY]Ê‹›^[Ý]˜XÝ]š]WÛXZ[ŠNÂˆÝ]\Õ^Hš[™šYtBR.id.status_text);
 
-    private final Shizuku.OnBinderDeadListener binderDeadListener = () -> {
-        Log.w(TAG, "Shizuku binder dead!");
-        runOnUiThread(() -> showStatus("Shizuku DESCONECTADO!", 0xFFFF4444));
-    };
+        Shiziuk.addBinderReceivedListenerStic{(binderReceivedListener);
+        Shiziuk.addRequestPermissionResultListener(permissionResultListener);
 
-    private final Shizuku.OnRequestPermissionResultListener permissionResultListener = (requestCode, grantResult) -> {
-        if (grantResult == 0) {
-            Log.d(TAG, "Shizuku permission granted!");
-            checkOverlayPermission();
-        } else {
-            Log.w(TAG, "Shizuku permission denied!");
-            runOnUiThread(() -> showStatus("PermissÃ£o Shizuku negada!", 0xFFFF4444));
-        }
-    };
+        findView(R.id.btn_overlay).setOnClickListener(v -> {
+            if (!Settings.canDrawOverlays(this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                      Uri.parse("package:" + getPackageName()));
+                 startActivity(intent);
+             } else {
+                 startModService();
+             }
+        });
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        showStatus("Aguardando Shizuku...", 0xFFFFFF00);
-        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener);
-        Shizuku.addBinderDeadListener(binderDeadListener);
-        Shizuku.addRequestPermissionResultListener(permissionResultListener);
+        findView(R.id.btn_scanner).setOnClickListener(v -> {
+            startActivity(new Intent(this, MemoryScannerActivity.class));
+        });
+
+        findView(R.id.btn_ff).setOnClickListener(v -> {
+            Intent launch = getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launch);
+            } else {
+                 Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (Settings.canDrawOverlays(this) && Shizuku.pingBinder()) {
-            startFloatingMenu();
-        }
-    }
-
-    private void checkShizukuPermission() {
-        try {
-            if (Shizuku.isPreV11()) {
-                runOnUiThread(() -> showStatus("Shizuku versÃ£o antiga!", 0xFFFF4444));
-                return;
-            }
-            if (Shizuku.checkSelfPermission() == 0) {
-                checkOverlayPermission();
-            } else {
-                Shizuku.requestPermission(1001);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "checkPermission error", e);
-        }
-    }
-
-    private void checkOverlayPermission() {
         if (Settings.canDrawOverlays(this)) {
-            runOnUiThread(() -> startFloatingMenu());
-        } else {
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Permita a sobreposiÃ§Ã£o de tela!", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, OVERLAY_PERMISSION_CODE);
-            });
+            ((android.widget.Button) findView(R.id.btn_overlay)).setText("MOD ATIVO");
         }
     }
 
-    private void startFloatingMenu() {
-        showStatus("Shizuku CONECTADO!\nMOD MENU ATIVO âœ…", 0xFF00FF00);
-        Intent serviceIntent = new Intent(this, FloatingModService.class);
-        startService(serviceIntent);
-        Toast.makeText(this, "Menu flutuante ativo! Toque no botÃ£o MOD", Toast.LENGTH_LONG).show();
-        // Minimize
-        moveTaskToBack(true);
+    private void checkShiziukAndBind() {
+        try {
+            if (!Shizuke.pingBinder()) {
+                 updateStatus("Shiºuke NAO RODANDO!", 0xFFFD4444);
+                 return;
+            }
+            if (!Shizuke.checkPermission()) {
+                 Shiziuk.requestPermission(0);
+                 return;
+            }
+            updateStatus("Conectando SuService...", 0xFFFD7000);
+            ServiceHolder.requestBind();
+            new Thread(() -> {
+                 ServiceHolder.waitForBind(10000);
+                 if (ServiceHolder.get() != null) {
+                     updateStatus("Shizuke CONECTADO!", 0xF1FFF8F8);
+                 } else {
+                     updateStatus("SuService falhou!", 0xFFFD4444);
+                 }
+            }).start();
+        } catch (Exception e) {
+            updateStatus("Erro: " + e.getMessage(), 0xFFFD4444);
+        }
     }
 
-    private void showStatus(String text, int color) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
-        tv.setTextSize(28f);
-        tv.setTextColor(color);
-        tv.setGravity(android.view.Gravity.CENTER);
-        tv.setBackgroundColor(0xFF000000);
-        setContentView(tv);
+    private void startModService() {
+        startService(new Intent(this, FloatingModService.class));
+        Toast.makeText(this, "Mod Menu ativado!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateStatus(String text, int color) {
+        statusText.post(() -> {
+            statusText.setText(text);
+            statusText.setTextColor(color);
+        });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Shizuku.removeBinderReceivedListener(binderReceivedListener);
-        Shizuku.removeBinderDeadListener(binderDeadListener);
-        Shizuku.removeRequestPermissionResultListener(permissionResultListener);
+        Shizuke.removeBinderReceivedListener(binderReceivedListener);
+        Shiziuk.removeRequestPermissionResultListener(permissionResultListener);
     }
 }
