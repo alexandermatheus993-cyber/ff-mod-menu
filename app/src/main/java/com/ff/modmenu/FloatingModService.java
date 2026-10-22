@@ -30,12 +30,9 @@ public class FloatingModService extends Service {
     }
 
     private void findTargetPid() {
-        ISuService svc = ServiceHolder.get();
-        if (svc == null) {
-            ServiceHolder.requestBind();
-            ServiceHolder.waitForBind(5000);
-            svc = ServiceHolder.get();
-        }
+        ServiceHolder.requestBind();
+        ServiceHolder.waitForBind(5000);
+        final ISuService svc = ServiceHolder.get();
         if (svc == null) {
             pidStatus.post(() -> {
                 pidStatus.setText("SuService OFF");
