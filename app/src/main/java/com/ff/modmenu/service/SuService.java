@@ -22,32 +22,23 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", "pidof " + packageName});
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = br.readLine();
-            br.close();
-            p.waitFor();
-            if (line != null && !line.isEmpty()) {
-                line = line.trim().split("\\s+")[0];
-                return Integer.parseInt(line);
+            // Shizuku: ler /proc direto, sem su
+            File proc = new File("/proc");
+            File[] files = proc.listFiles();
+            if (files == null) return -1;
+            for (File f : files) {
+                if (!f.isDirectory()) continue;
+                try {
+                    int pid = Integer.parseInt(f.getName());
+                    File cmdline = new File(f, "cmdline");
+                    BufferedReader br = new BufferedReader(new FileReader(cmdline));
+                    String cmd = br.readLine();
+                    br.close();
+                    if (cmd != null && cmd.contains(packageName)) return pid;
+                } catch (Exception ignored) {}
             }
         } catch (Exception e) {
-            try {
-                File proc = new File("/proc");
-                File[] files = proc.listFiles();
-                if (files == null) return -1;
-                for (File f : files) {
-                    if (!f.isDirectory()) continue;
-                    try {
-                        int pid = Integer.parseInt(f.getName());
-                        File cmdline = new File(f, "cmdline");
-                        BufferedReader br = new BufferedReader(new FileReader(cmdline));
-                        String cmd = br.readLine();
-                        br.close();
-                        if (cmd != null && cmd.contains(packageName)) return pid;
-                    } catch (Exception ignored) {}
-                }
-            } catch (Exception ignored) {}
+            e.printStackTrace();
         }
         return -1;
     }
@@ -55,15 +46,13 @@ public class SuService extends ISuService.Stub {
     @Override
     public long findBaseAddress(int pid, String libName) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{
-                "su", "-c", "cat /proc/" + pid + "/maps"
-            });
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            // Shizuku: ler /proc/pid/maps direto, sem su
+            File maps = new File("/proc/" + pid + "/maps");
+            BufferedReader br = new BufferedReader(new FileReader(maps));
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.contains(libName)) {
                     br.close();
-                    p.waitFor();
                     int dash = line.indexOf('-');
                     if (dash > 0) {
                         return Long.parseLong(line.substring(0, dash), 16);
@@ -71,7 +60,6 @@ public class SuService extends ISuService.Stub {
                 }
             }
             br.close();
-            p.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
