@@ -1,5 +1,6 @@
 package com.ff.modmenu;
-import android.application.Activity;
+
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,46 +8,55 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
-import rika.shizuku.Shizuku;
+import rikka.shizuku.Shizuku;
 
-public class MainActivity^[ô»X›]ö]H¬àö]ò]H›]X»ö[ò[›ö[ô»Q»Hëëì[ŸY[ùHé¬àö]ò]H^öY]»›]\’^¬Çàö]ò]H⁄^ùZŸKì€êö[ô\îôXŸZ]ôY\›[ô\àö[ô\îôXŸZ]ôY\›[ô\àH
+public class MainActivity extends Activity {
+    private static final String TAG = "FFModMenu";
+    private TextView statusText;
 
-HOà¬àŸÀô
-QÀî⁄^ùZŸHö[ô\àôXŸZ]ôYäN¬à⁄X⁄‘⁄^ö]Z–[ôö[ô
+    private Shizuku.OnBinderReceivedListener binderReceivedListener = () -> {
+        Log.d(TAG, "Shizuku binder received");
+        checkShizukuAndBind();
+    };
 
-N¬àN¬Çàö]ò]H⁄^ùZŸKì€îô\]Y\›\õZ\‹⁄[€îô\›[\›[ô\à\õZ\‹⁄[€îô\›[\›[ô\àH
-ô\]Y\›€ŸK‹ò[ùô\›[
-HOà¬àYà
-‹ò[ùô\›[OH
-H¬à⁄X⁄‘⁄^ùZ–[ôö[ô
+    private Shizuku.OnRequestPermissionResultListener permissionResultListener = (requestCode, grantResult) -> {
+        if (grantResult == 0) {
+            checkShizukuAndBind();
+        } else {
+            updateStatus("PERMISSAO NEGADA!", 0xFFFF4444);
+        }
+    };
 
-N¬àH[ŸH¬à\]T›]\ îTìRT‘–S»ëQ–QHLãëëë
-N¬àBàN¬Çà›ô\úöYBàõ›X›Yõ⁄Y€ê‹ôX]Jù[ôHÿ]ôY[ú›[òŸT›]JH¬à›\\ãõ€ê‹ôX]Jÿ]ôY[ú›[òŸT›]JN¬àŸ]€€ù[ùöY] ãõ^[›]òX›]ö]W€XZ[äN¬à›]\’^Hö[ôöYtBR.id.status_text);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        statusText = findViewById(R.id.status_text);
 
-        Shiziuk.addBinderReceivedListenerStic{(binderReceivedListener);
-        Shiziuk.addRequestPermissionResultListener(permissionResultListener);
+        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener);
+        Shizuku.addRequestPermissionResultListener(permissionResultListener);
 
-        findView(R.id.btn_overlay).setOnClickListener(v -> {
+        findViewById(R.id.btn_overlay).setOnClickListener(v -> {
             if (!Settings.canDrawOverlays(this)) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                      Uri.parse("package:" + getPackageName()));
-                 startActivity(intent);
-             } else {
-                 startModService();
-             }
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } else {
+                startModService();
+            }
         });
 
-        findView(R.id.btn_scanner).setOnClickListener(v -> {
+        findViewById(R.id.btn_scanner).setOnClickListener(v -> {
             startActivity(new Intent(this, MemoryScannerActivity.class));
         });
 
-        findView(R.id.btn_ff).setOnClickListener(v -> {
+        findViewById(R.id.btn_ff).setOnClickListener(v -> {
             Intent launch = getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
             if (launch != null) {
                 launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(launch);
             } else {
-                 Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -55,32 +65,32 @@ N¬àBàN¬Çà›ô\úöYBàõ›X›Yõ⁄Y€ê‹ôX]Jù[ôHÿ]ôY[ú›[
     protected void onResume() {
         super.onResume();
         if (Settings.canDrawOverlays(this)) {
-            ((android.widget.Button) findView(R.id.btn_overlay)).setText("MOD ATIVO");
+            ((android.widget.Button) findViewById(R.id.btn_overlay)).setText("MOD ATIVO");
         }
     }
 
-    private void checkShiziukAndBind() {
+    private void checkShizukuAndBind() {
         try {
-            if (!Shizuke.pingBinder()) {
-                 updateStatus("Shi∫uke NAO RODANDO!", 0xFFFD4444);
-                 return;
+            if (!Shizuku.pingBinder()) {
+                updateStatus("Shizuku NAO RODANDO!", 0xFFFF4444);
+                return;
             }
-            if (!Shizuke.checkPermission()) {
-                 Shiziuk.requestPermission(0);
-                 return;
+            if (Shizuku.checkSelfPermission() != 0) {
+                Shizuku.requestPermission(0);
+                return;
             }
-            updateStatus("Conectando SuService...", 0xFFFD7000);
+            updateStatus("Conectando SuService...", 0xFFFFD700);
             ServiceHolder.requestBind();
             new Thread(() -> {
-                 ServiceHolder.waitForBind(10000);
-                 if (ServiceHolder.get() != null) {
-                     updateStatus("Shizuke CONECTADO!", 0xF1FFF8F8);
-                 } else {
-                     updateStatus("SuService falhou!", 0xFFFD4444);
-                 }
+                ServiceHolder.waitForBind(10000);
+                if (ServiceHolder.get() != null) {
+                    updateStatus("Shizuku CONECTADO!", 0xFF00FF88);
+                } else {
+                    updateStatus("SuService falhou!", 0xFFFF4444);
+                }
             }).start();
         } catch (Exception e) {
-            updateStatus("Erro: " + e.getMessage(), 0xFFFD4444);
+            updateStatus("Erro: " + e.getMessage(), 0xFFFF4444);
         }
     }
 
@@ -99,7 +109,7 @@ N¬àBàN¬Çà›ô\úöYBàõ›X›Yõ⁄Y€ê‹ôX]Jù[ôHÿ]ôY[ú›[
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Shizuke.removeBinderReceivedListener(binderReceivedListener);
-        Shiziuk.removeRequestPermissionResultListener(permissionResultListener);
+        Shizuku.removeBinderReceivedListener(binderReceivedListener);
+        Shizuku.removeRequestPermissionResultListener(permissionResultListener);
     }
 }
