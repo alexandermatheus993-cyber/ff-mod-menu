@@ -1,38 +1,214 @@
 package com.ff.modmenu;
-import android.application.Service;
-import android.content.Intentì)¥µÁ½ÉĞ…¹‘É½¥¹É…Á¡¥Ì¹½±½Èì)¥µÁ½ÉĞ…¹‘É½¥¹É…Á¡¥Ì¹A¥á•±½Éµ…Ğì)¥µÁ½ÉĞ…¹‘É½¥¹½Ì¹%	¥¹‘•Èì)¥µÁ½ÉĞ…¹‘É½¥¹ÕÑ¥°¹1½œì)¥µÁ½ÉĞ…¹‘É½¥¹Ù¥•Ü¸¨ì)¥µÁ½ÉĞ…¹‘É½¥¹İ¥‘•Ğ¸¨ì()ÁÕ‰±¥Œ±…ÍÌ±½…Ñ¥¹5½‘M•ÉÙ¥”•áÑ•¹‘ÌM•ÉÙ¥”ì(€€€ÁÉ¥Ù…Ñ”ÍÑ…Ñ¥Œ™¥¹…°MÑÉ¥¹œQ€ô€‰5½‘5•¹Ôˆì(€€€ÁÉ¥Ù…Ñ”]¥¹‘½İ5…¹…•Èİ¥¹‘½İ5…¹…•Èì(€€€ÁÉ¥Ù…Ñ”Y¥•Üµ•¹Õ	ÕÑÑ½¸ì(€€€ÁÉ¥Ù…Ñ”Y¥•Üµ•¹ÕA…¹•°ì(€€€ÁÉ¥Ù…Ñ”‰½½±•…¸µ•¹Õ=Á•¸€ô™…±Í”ì(€€€ÁÉ¥Ù…Ñ”¥¹ĞÑ…É•ÑA¥€ô€´Äì(€€€ÁÉ¥Ù…Ñ”Q•áÑY¥•ÜÁ¥‘MÑ…ÑÕÌì((€€€=Ù•ÉÉ¥‘”(€€€ÁÕ‰±¥Œ%	¥¹‘•È½¹	¥¹¡%¹Ñ•¹Ğ¥¹Ñ•¹Ğ¤ìÉ•ÑÕÉ¸¹Õ±°ìô((€€€=Ù•ÉÉ¥‘”(€€€ÁÕ‰±¥ŒÙ½¥½¹É•…Ñ” ¤ì(€€€€€€€ÍÕÁ•È¹½¹É•…Ñ” ¤ì(€€€€€€€İ¥¹‘½İ5…¹…•È€ô€¡]¥¹‘½İ5…¹…•È¤•ÑM•ÉÙ¥”¡]%9=]}MIY%¤ì(€€€€€€€M•ÉÙ¥•!½±‘•È¹É•ÅÕ•ÍÑ	¥¹ ¤ì(€€€€€€€É•…Ñ•±½…Ñ¥¹	ÕÑÑ½¸ ¤ì(€€€ô((€€€ÁÉ¥Ù…Ñ”Ù½¥™¥¹‘Q…É•ÑA¥ ¤ì(€€€€€€€%MÕM•ÉÙ¥”ÍÙŒ€ôM•ÉÙ¥•!½±‘•È¹•Ğ ¤ì(€€€€€€€¥˜€¡ÍÙŒ€ôô¹Õ±°¤ì(€€€€€€€€€€€M•ÉÙ¥•!½±‘•È¹É•ÅÕ•ÍÑ	¥¹ ¤ì(€€€€€€€€€€€M•ÉÙ¥•!½±‘•È¹İ…¥Ñ½É	¥¹ ÔÀÀÀ¤ì(€€€€€€€€€€€ÍÙŒ€ôM•ÉÙ¥•!½±‘•È¹•Ğ ¤ì(€€€€€€€ô(€€€€€€€¥˜€¡ÍÙŒ€ôô¹Õ±°¤ì(€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Á½ÍĞ  ¤€´øì(€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áĞ ‰MÕM•ÉÙ¥”=ˆ¤ì(€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áÑ½±½È ÁáĞĞĞĞ¤ì(€€€€€€€€€€€ô¤ì(€€€€€€€€€€€É•ÑÕÉ¸ì(€€€€€€€ô(€€€€€€€Á¥‘MÑ…ÑÕÌ¹Á½ÍĞ  ¤€´øì(€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áĞ ‰AÉ½ÕÉ…¹‘¼¸¸¸ˆ¤ì(€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áÑ½±½ÈÁáÜÀÀÀ¤ì(€€€€€€€ô¤ì(€€€€€€€¹•ÜQ¡É•…  ¤øì(€€€€€€€€€€€ÑÉäì(€€€€€€€€€€€€€€€€MÑÉ¥¹œÍ¡•±°€ôÍÙŒ¹•á•½µµ…¹ ‰•¡¼=,ˆ¤ì(€€€€€€€€€€€€€€€€¥¹ĞÁ¥€ôÍÙŒ¹™¥¹‘A¥ ‰½´¹‘ÑÌ¹™É••™¥É•Ñ ˆ¤ì(€€€€€€€€€€€€€€€1½œ¹¡Q°€‰Í¡•±°ôˆ€¬Í¡•±°€¬€ˆÁ¥ôˆ€¬Á¥¤ì(€€€€€€€€€€€€€€€Ñ…É•ÑA¥€ôÁ¥ì(€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Á½ÍĞ  ¤øì(€€€€€€€€€€€€€€€€€€€€¥˜€¡Á¥€ø€À¤ì(€€€€€€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áĞ ‰A%è€ˆ€¬Á¥€¬€ˆ=,ˆ¤ì(€€€€€€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áÑ½±½ÈÁáÅáà¤ì(€€€€€€€€€€€€€€€€€€€€ô•±Í”ì(€€€€€€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áĞ ‰9<	IQ<ğ€ˆ€¬Í¡•±°¤ì(€€€€€€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áÑ½±½È ÁáĞĞĞĞ¤ì(€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€ô¤ì(€€€€€€€€€€€ô…Ñ €¡á•ÁÑ¥½¸”¤ì(€€€€€€€€€€€€€€€€1½œ¹”¡Q°€‰™¥¹‘A¥•ÉÉ½Èˆ°”¤ì(€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Á½ÍĞ  ¤øì(€€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áĞ ‰II<è€ˆ€¬”¹•Ñ5•ÍÍ…” ¤¤ì(€€€€€€€€€€€€€€€€€€€Á¥‘MÑ…ÑÕÌ¹Í•ÑQ•áÑ½±½È ÁáĞĞĞĞ¤ì(€€€€€€€€€€€€€€€€ô¤ì(€€€€€€€€€€€ô(€€€€€€€ô¤¹ÍÑ…ÉĞ ¤ì(€€€ô((€€€ÁÉ¥Ù…Ñ”Ù½¥É•…Ñ•±½…Ñ¥¹	ÕÑÑ½¸ ¤ì(€€€€€€€¥¹Ğ‰Ñ¹QåÁ”€ô]¥¹‘½İ5…¹…•È¹1…å½ÕÑA…É…µÌ¹QeA}AA1%Q%=9}=YI1dì(€€€€€€€]¥¹‘½İ5…¹…•È¹1…å½ÕÑA…É…µÌÁ…É…µÌ€ô¹•\]¥¹‘½İ5…¹…•È¹1…å½ÕÑA…É…µÌ (€€€€€€€€€€€€€ÄĞÀ°€ÄĞÀ°‰Ñ¹QåÁ”°(€€€€€€€€€€€€]¥¹‘½İ5…¹…•È¹1…å½ÕÑA…É…µÌ¹1}9=Q}=UM	1°(€€€€€€€€€€€€A¥á•±½Éµ…Ğ¹QI9M1U9P¤ì(€€€€€€€Á…É…µÌ¹É…Ù¥Ñä€ôÉ…Ù¥Ñä¹Q=@ğÉ…Ù¥Ñä¹MQIPì(€€€€€€€Á…É…µÌ¹à€ô€ÈÀì(€€€€€€€Á…É…µÌ¹ä€ô€ÌÀÀì((€€€€€€€1¥¹•…É1…å½ÕĞ‰Ñ¹1…å½ÕĞ€ô¹•Ü1¥¹•…É1…å½ÕĞ¡Ñ¡¥Ì¤ì(€€€€€€€‰Ñ¹1…å½ÕĞ¹Í•Ñ=É¥•¹Ñ…Ñ¥½¸¡1¦æV$Æ–÷WBådU%D”4Â“°¢'FäÆ–÷WBç6WD&6¶w&÷VæD6öÆ÷"ƒ„dcƒdcƒ‚“°¢'FäÆ–÷WBç6WDw&f—G’„7&f—G’ä4TåDU"“° ¢FW‡Ef–Wr'FåFW‡BÒæWrFW‡Ef–Wr‡F†—2“°¢'FåFW‡Bç6WEFW‡B‚$ÔôB"“°¢'FåFW‡Bç6WEFW‡D6öÆ÷"„6öÆ÷"äÄ4²“°¢'FåFW‡Bç6WEFW‡E6—¦RƒB“°¢'FåFW‡Bç6WDw&f—G’„w&f—G’ä4TåDU"“°¢'FåFW‡Bç6WGG—Vf6R†çVÆÂÂæG&ö–Bæw&†–72åG—Vf6Rä$ôÄB“°¢'FäÆ–÷WBæFEf–Wr†'FåFW‡B“° ¢ÖVçT'WGFöâÒ'FäÆ–÷WC°¢f–æÂfÆöEµÒF÷V6…‚ÒæWrfÆöE³Ó°¢f–æÂfÆöEµÒF÷V6…’ÒæWrfÆöE³Ó°¢f–æÂ–çEµÒ7F'E‚ÒæWr–çE³Ó°¢f–æÂ–çEµÒ7F'E’ÒæWr–çE³Ó° ¢ÖVçT'WGFöâç6WDöåF÷V6„Æ—7FVæW"‚‡bÂWfVçB’Óâ°¢7v—F6‚†WfVçBævWD7F–öâ‚’’°¢66RÖ÷F–öäWfVçBä5D”ôåôDõtã ¢F÷V6……³ÒÒWfVçBævWE&u‚‚“°¢F÷V6…•³ÒÒWfVçBævWE&u’‚“°¢7F'E…³ÒÒ&×2çƒ°¢7F'E•³ÒÒ&×2ç“°¢&WGW&âG'VS°¢66RÖ÷F–öäWfVçBä5D”ôåôÔõdS ¢&×2ç‚Ò7F'E…³Ò²†–çB’†WfVçBævWE&e‚‚’ÒF÷V6……³Ò“°¢&×2ç’Ò7F'E•³Ò²†–çB’†WfVçBævWE&e’‚’ÒF÷V6…•³Ò“°¢v–æF÷tÖævW"çWFFUf–WtÆ–÷WB†ÖVçT'WGFöâÂ&×2“°¢&WGW&âG'VS°¢66RÖ÷F–öäWfVçBä5D”ôåõU ¢fÆöBG‚ÒÖF‚æ'2†WfVçBævWE&e‚‚’ÒF÷V6……³Ò“°¢fÆöBG’ÒÖF‚æ'2†WfVçBævWE&u’‚’ÒF÷V6…•³Ò“°¢–b†G‚ÂbbG’Â’FövvÆTÖVçR‚“°¢&WGW&âG'VS°¢Ğ¢&WGW&âfÇ6S°¢Ò“°¢v–æF÷tÖævW"æFEf–Wr†ÖVçT'WGFöâÂ&×2“°¢7&VFTÖVçUæVÂ‚“°¢Ğ ¢&—fFRfö–B7&VFTÖVçUæVÂ‚’°¢–çB'FåG—RÒv–æF÷tÖævW"äÆ–÷WE&×2åE•UôÄ”4D”ôåôõdU$Ä“°¢v–æF÷tÖævW"äÆ–÷WE&×2&×2ÒæWrv–æF÷tÖævW"äÆ–÷WE&×2€¢sSÂv–æF÷tÖævW"äÆ–÷WE&×2åu$ô4ôåDTåBÂ'FåG—RÀ¢v–æF÷tÖævW"äÆ–÷WE&×2ädÄuôäõEõDõT4…ôÔôDÂÀ¢—†VÄf÷&ÖBåE$å4ÅT4TåB“°¢&×2æw&f—G’Òw&f—G’ä4TåDU#° ¢Æ–æV$Æ–÷WBæVÂÒæWrÆ–æV$Æ–÷WB‡F†—2“°¢æVÂç6WD÷&–VçFF–öâ„Æ–æV$Æ–÷WBådU$D”4Â“°¢æVÂç6WD&6¶w&÷VæD6öÆ÷#„DC4R“°¢æVÂç6WEFF–ærƒ#RÂ#RÂ#RÂ#R“° ¢FW‡Ef–WrF—FÆRÒæWrFW‡Ef–Wr‡F†—2“°¢F—FÆRç6WEFW‡B‚$dbÔôBÔTåR"“°¢F—FÆRç6WEFW‡D6öÆ÷#„c„dc„c‚“°¢F—FÆRç6WEFW‡E6—¦Rƒ‚“°¢F—FÆRç6WDw&f—G’„7&f—G’ä4TåDU"“°¢F—FÆRç6WEFF–ærƒÂÂÂR“°¢æVÂæFEf–Wr‡F—FÆR“° ¢Æ–æV$Æ–÷WB7FGW5&÷rÒæWrÆ–æV$Æ–÷WB‡F†—2“°¢7FGW5&÷rç6WD÷&–VçFF–öâ„Æ›™X\“^[İ]’Ô’V“Ó•S
-NÂˆİ]\Ô›İËœÙ]Y[™ÊMJNÂ‚ˆYİ]\ÈH™]È^šY]Ê\ÊNÂˆYİ]\ËœÙ]^
-QÕT‘S‘Ë‹‹ˆŠNÂˆYİ]\ËœÙ]^ÛÛÜŠ‘‘‘Ì
-NÂˆYİ]\ËœÙ]^Ú^™JLŠNÂˆİ]\Ô›İË˜YšY]ÊYİ]\ÊNÂ‚ˆ]Ûˆ”™Yœ™\ÚH™]È]ÛŠ\ÊNÂˆ”™Yœ™\ÚœÙ]^
-”‘Q”‘TÒŠNÂˆ”™Yœ™\ÚœÙ]^Ú^™JL
-NÂˆ”™Yœ™\ÚœÙ]ÛÛXÚÓ\İ[™\ŠˆOˆš[™\™Ù]Y
 
-JNÂˆİ]\Ô›İË˜YšY]Ê”™Yœ™\Ú
-NÂ‚ˆ]Ûˆ”ØØ[›™\ˆH™]È]ÛŠ\ÊNÂˆ”ØØ[›™\‹œÙ]^
-”ĞĞSˆŠNÂˆ”ØØ[›™\‹œÙ]^Ú^™JL
-NÂˆ”ØØ[›™\‹œÙ]ÛÛXÚÓ\İ[™\ŠˆOˆÂˆ[[HH™]È[[
-›Ø][™Ó[ÙÙ\šXÙK\ËY[[ÜTØØ[›™\Xİ]š]K˜Û\ÜÊNÂˆK˜Y›YÜÊ[[‘“Q×ĞPÕU’UWÓ‘U×ÕTÒÊNÂˆİ\Xİ]š]JJNÂˆJNÂˆİ]\Ô›İË˜YšY]Ê”ØØ[›™\ŠNÂˆ[™[˜YšY]Êİ]\Ô›İÊNÂ‚ˆYİÚ]Ú
-[™[“›È™XÛÚ[‹˜[ÙJNÂˆYİÚ]Ú
-[™[’XYÚİXÚÈ‹˜[ÙJNÂˆYİÚ]Ú
-[™[”Ù[œÚH›ÛÜİ‹˜[ÙJNÂˆYİÚ]Ú
-[™[Z[X›İ‹˜[ÙJNÂˆYİÚ]Ú
-[™[[[˜HXÚÈ‹˜[ÙJNÂˆYİÚ]Ú
-[™[‘TÔ[™H‹˜[ÙJNÂ‚ˆ]Û‰Ø“][˜ÚH™]È]ÛŠ\ÊNÂˆ“][˜ÚœÙ]^
-P”’Tˆ”‘QH’T‘HŠNÂˆ“][˜ÚœÙ]ÛXÓ\İ[™\ŠˆOˆÂˆ[[][˜ÚHÙ]XÚØYÙSX[˜YÙ\Š
-K™Ù]][˜Ú[[›Ü”XÚØYÙJ˜ÛÛK™Ë™œ™YYš\™]ŠNÂˆYˆ
-][˜ÚOH[
-HÂˆ][˜Ú˜Y›YÜÊ[[‘“Q×ĞPÕU’UWÓ‘U×ÕTÒÊNÂˆİ\Xİ]š]J][˜Ú
-NÂˆH[ÙHÂˆØ\İ›XZÙU^
-\Ë‘œ™YHš\™H˜[È[œİ[YÈH‹Ø\İ“S‘ÕÔÒÔ•
-KœÚİÊ
-NÂˆBˆJNÂˆ[™[˜YšY]Ê“][˜Ú
-NÂ‚ˆ]Û‰ØÛÜÙHH™]È]ÛŠ\ÊNÂˆÛÜÙKœÙ]^
-‘‘PÒTˆŠNÂˆÛÜÙKœÙ]ÛXÓ\İ[™\ŠˆOˆÙÙÛSY[J
-JNÂˆ[™[˜YšY]ÊÛÜÙJNÂ‚ˆY[T[™[H[™[ÂˆY[T[™[œÙ]š\ÚXš[]JšY]Ë‘ÓÓ‘JNÂˆÚ[™İÓX[˜YÙ\‹˜YšY]ÊY[T[™[\˜[\ÊNÂˆB‚ˆš]˜]HİÚ]ÚYİÚ]Ú
-nearLayout parent, String text, boolean checked) {
+import android.app.Service;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.os.IBinder;
+import android.util.Log;
+import android.view.*;
+import android.widget.*;
+
+public class FloatingModService extends Service {
+    private static final String TAG = "FFModMenu";
+    private WindowManager windowManager;
+    private View menuButton;
+    private View menuPanel;
+    private boolean menuOpen = false;
+    private int targetPid = -1;
+    private TextView pidStatus;
+
+    @Override
+    public IBinder onBind(Intent intent) { return null; }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        ServiceHolder.requestBind();
+        createFloatingButton();
+    }
+
+    private void findTargetPid() {
+        ISuService svc = ServiceHolder.get();
+        if (svc == null) {
+            ServiceHolder.requestBind();
+            ServiceHolder.waitForBind(5000);
+            svc = ServiceHolder.get();
+        }
+        if (svc == null) {
+            pidStatus.post(() -> {
+                pidStatus.setText("SuService OFF");
+                pidStatus.setTextColor(0xFFFF4444);
+            });
+            return;
+        }
+        pidStatus.post(() -> {
+            pidStatus.setText("Procurando...");
+            pidStatus.setTextColor(0xFFFFD700);
+        });
+        new Thread(() -> {
+            try {
+                String shell = svc.execCommand("echo OK");
+                int pid = svc.findPid("com.dts.freefireth");
+                Log.d(TAG, "shell=" + shell + " pid=" + pid);
+                targetPid = pid;
+                pidStatus.post(() -> {
+                    if (pid > 0) {
+                        pidStatus.setText("PID: " + pid + " OK");
+                        pidStatus.setTextColor(0xFF00FF88);
+                    } else {
+                        pidStatus.setText("FF NAO ABERTO | " + shell);
+                        pidStatus.setTextColor(0xFFFF4444);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "findPid error", e);
+                pidStatus.post(() -> {
+                    pidStatus.setText("ERRO: " + e.getMessage());
+                    pidStatus.setTextColor(0xFFFF4444);
+                });
+            }
+        }).start();
+    }
+
+    private void createFloatingButton() {
+        int btnType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                140, 140, btnType,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.TOP | Gravity.START;
+        params.x = 20;
+        params.y = 300;
+
+        LinearLayout btnLayout = new LinearLayout(this);
+        btnLayout.setOrientation(LinearLayout.VERTICAL);
+        btnLayout.setBackgroundColor(0xFF00FF88);
+        btnLayout.setGravity(Gravity.CENTER);
+
+        TextView btnText = new TextView(this);
+        btnText.setText("MOD");
+        btnText.setTextColor(Color.BLACK);
+        btnText.setTextSize(14);
+        btnText.setGravity(Gravity.CENTER);
+        btnText.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnLayout.addView(btnText);
+
+        menuButton = btnLayout;
+        final float[] touchX = new float[1];
+        final float[] touchY = new float[1];
+        final int[] startX = new int[1];
+        final int[] startY = new int[1];
+
+        menuButton.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    touchX[0] = event.getRawX();
+                    touchY[0] = event.getRawY();
+                    startX[0] = params.x;
+                    startY[0] = params.y;
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    params.x = startX[0] + (int) (event.getRawX() - touchX[0]);
+                    params.y = startY[0] + (int) (event.getRawY() - touchY[0]);
+                    windowManager.updateViewLayout(menuButton, params);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    float dx = Math.abs(event.getRawX() - touchX[0]);
+                    float dy = Math.abs(event.getRawY() - touchY[0]);
+                    if (dx < 10 && dy < 10) toggleMenu();
+                    return true;
+            }
+            return false;
+        });
+
+        windowManager.addView(menuButton, params);
+        createMenuPanel();
+    }
+
+    private void createMenuPanel() {
+        int btnType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                750, WindowManager.LayoutParams.WRAP_CONTENT, btnType,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.CENTER;
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setBackgroundColor(0xDD1A1A2E);
+        panel.setPadding(25, 25, 25, 25);
+
+        TextView title = new TextView(this);
+        title.setText("FF MOD MENU");
+        title.setTextColor(0xFF00FF88);
+        title.setTextSize(18);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 15);
+        panel.addView(title);
+
+        LinearLayout statusRow = new LinearLayout(this);
+        statusRow.setOrientation(LinearLayout.HORIZONTAL);
+        statusRow.setPadding(0, 0, 0, 15);
+
+        pidStatus = new TextView(this);
+        pidStatus.setText("AGUARDANDO...");
+        pidStatus.setTextColor(0xFFFFD700);
+        pidStatus.setTextSize(12);
+        statusRow.addView(pidStatus);
+
+        Button btnRefresh = new Button(this);
+        btnRefresh.setText("REFRESH");
+        btnRefresh.setTextSize(10);
+        btnRefresh.setOnClickListener(v -> findTargetPid());
+        statusRow.addView(btnRefresh);
+
+        Button btnScanner = new Button(this);
+        btnScanner.setText("SCAN");
+        btnScanner.setTextSize(10);
+        btnScanner.setOnClickListener(v -> {
+            Intent i = new Intent(FloatingModService.this, MemoryScannerActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        });
+        statusRow.addView(btnScanner);
+        panel.addView(statusRow);
+
+        addSwitch(panel, "No Recoil", false);
+        addSwitch(panel, "Headshot Hack", false);
+        addSwitch(panel, "Sensi Boost", false);
+        addSwitch(panel, "Aimbot", false);
+        addSwitch(panel, "Antena Hack", false);
+        addSwitch(panel, "ESP Line", false);
+
+        Button btnLaunch = new Button(this);
+        btnLaunch.setText("ABRIR FREE FIRE");
+        btnLaunch.setOnClickListener(v -> {
+            Intent launch = getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launch);
+            } else {
+                Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        panel.addView(btnLaunch);
+
+        Button btnClose = new Button(this);
+        btnClose.setText("FECHAR");
+        btnClose.setOnClickListener(v -> toggleMenu());
+        panel.addView(btnClose);
+
+        menuPanel = panel;
+        menuPanel.setVisibility(View.GONE);
+        windowManager.addView(menuPanel, params);
+    }
+
+    private Switch addSwitch(LinearLayout parent, String text, boolean checked) {
         Switch sw = new Switch(this);
         sw.setText(text);
-        sw.setTextColor0xFFFFFFF);
+        sw.setTextColor(0xFFFFFFFF);
         sw.setTextSize(14);
         sw.setChecked(checked);
         sw.setPadding(0, 8, 0, 8);
@@ -42,14 +218,14 @@ JNÂˆ[™[˜YšY]ÊÛÜÙJNÂ‚ˆY[T[™[H[™[ÂˆY[T[™
 
     private void toggleMenu() {
         menuOpen = !menuOpen;
-        menuPanel.setVisibility(menuOpen ? View.VISIBLe : View.GONE);
+        menuPanel.setVisibility(menuOpen ? View.VISIBLE : View.GONE);
         if (menuOpen) findTargetPid();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (menuButton != null) { windowManager.removeView(menuButton, params) } catch (Exception ignored) { }
-        if (menuPanel!= null) { windowManager.removeView(menuPanel, params) } catch (Exception ignored) { }
+        if (menuButton != null) try { windowManager.removeView(menuButton); } catch (Exception ignored) {}
+        if (menuPanel != null) try { windowManager.removeView(menuPanel); } catch (Exception ignored) {}
     }
 }
