@@ -3,27 +3,48 @@ package com.ff.modmenu;
 import android.util.Log;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import rikka.shizuku.Shizuku;
 
 public class SuService extends ISuService.Stub {
 
     private static final String TAG = "FFModMenu";
 
-    private String execCmd(String... cmd) {
+    private Process newProcess(String[] cmd) throws Exception {
+        Method m = Shizuku.class.getDeclaredMethod("newProcess", String[].class, String[].class, String.class);
+        m.setAccessible(true);
+        return (Process) m.invoke(null, cmd, null, null);
+    }
+
+    private String readStream(InputStream is) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) {
+            sb.append(new String(buf, 0, n));
+        }
+        return sb.toString().trim();
+    }
+
+    @Override
+    public String execCommand(String cmd) {
         try {
-            Process p = Shizuku.newProcess(cmd, null, null);
+            Log.d(TAG, "execCommand: " + cmd);
+            Process p = newProcess(new String[]{"sh"});
+            OutputStream os = p.getOutputStream();
             InputStream is = p.getInputStream();
-            byte[] buf = new byte[4096];
-            int totalRead = 0;
-            while (totalRead < buf.length) {
-                int n = is.read(buf, totalRead, buf.length - totalRead);
-                if (n == -1) break;
-                totalRead += n;
-            }
+
+            os.write((cmd + "\n").getBytes());
+            os.flush();
+            os.write("exit\n".getBytes());
+            os.flush();
+
+            String result = readStream(is);
             p.waitFor();
-            if (totalRead > 0) return new String(buf, 0, totalRead).trim();
+            Log.d(TAG, "execCommand result length: " + result.length());
+            return result;
         } catch (Exception e) {
-            Log.e(TAG, "execCmd error: " + e.getMessage());
+            Log.e(TAG, "execCommand error", e);
         }
         return "";
     }
@@ -31,9 +52,9 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
-            String result = execCmd("pidof", packageName);
+            String result = execCommand("pidof " + packageName);
             Log.d(TAG, "findPid result: " + result);
-            if (!result.isEmpty()) {
+            if (result != null && !result.isEmpty()) {
                 String[] parts = result.split("\\s+");
                 return Integer.parseInt(parts[0].trim());
             }
@@ -48,24 +69,20 @@ public class SuService extends ISuService.Stub {
         try {
             if (data == null || data.length == 0 || pid <= 0) return false;
 
-            Process p = Shizuku.newProcess(new String[]{"sh"}, null, null);
+            Process p = newProcess(new String[]{"sh"});
             OutputStream os = p.getOutputStream();
             InputStream is = p.getInputStream();
 
-            // Build hex escape string for printf
             StringBuilder hex = new StringBuilder();
             for (byte b : data) {
                 hex.append(String.format("\\x%02x", b & 0xFF));
             }
 
-            // Use printf + dd to write to /proc/pid/mem
             String cmd = String.format(
-                "printf '%s' | dd of=/proc/%d/mem bs=1 seek=%d count=%d 2>/dev/null\n",
+                "printf '%s' | dd of=/proc/%d/mem bs=1 seek=%d count=%d 2>/dev/null; echo EXIT:$?\n",
                 hex.toString(), pid, address, data.length);
 
             os.write(cmd.getBytes());
-            os.flush();
-            os.write("echo EXIT_CODE:$?\n".getBytes());
             os.flush();
             os.write("exit\n".getBytes());
             os.flush();
@@ -76,8 +93,8 @@ public class SuService extends ISuService.Stub {
 
             if (n > 0) {
                 String result = new String(buf, 0, n);
-                Log.d(TAG, "writeMemory result: " + result);
-                return result.contains("EXIT_CODE:0");
+                Log.d(TAG, "writeMemory: " + result);
+                return result.contains("EXIT:0");
             }
         } catch (Exception e) {
             Log.e(TAG, "writeMemory error", e);
@@ -90,7 +107,7 @@ public class SuService extends ISuService.Stub {
         try {
             if (size <= 0 || pid <= 0) return null;
 
-            Process p = Shizuku.newProcess(new String[]{"sh"}, null, null);
+            Process p = newProcess(new String[]{"sh"});
             OutputStream os = p.getOutputStream();
             InputStream is = p.getInputStream();
 
