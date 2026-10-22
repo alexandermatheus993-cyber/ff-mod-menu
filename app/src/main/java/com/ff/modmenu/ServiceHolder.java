@@ -1,6 +1,7 @@
 package com.ff.modmenu;
 
 import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 import rikka.shizuku.Shizuku;
@@ -12,7 +13,7 @@ public class ServiceHolder {
     private static boolean waitingBind = false;
     private static final Object lock = new Object();
 
-    private static Shizuku.UserServiceConnection connection = new Shizuku.UserServiceConnection() {
+    private static ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             synchronized (lock) {
@@ -21,6 +22,14 @@ public class ServiceHolder {
                 waitingBind = false;
                 lock.notifyAll();
                 Log.d(TAG, "SuService conectado!");
+            }
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            synchronized (lock) {
+                suService = null;
+                bound = false;
+                Log.d(TAG, "SuService desconnectado!");
             }
         }
     };
