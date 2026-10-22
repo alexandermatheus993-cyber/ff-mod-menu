@@ -1,6 +1,5 @@
 package com.ff.modmenu;
 
-import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.Parcel;
@@ -8,23 +7,12 @@ import android.os.RemoteException;
 
 public interface ISuService extends IInterface {
 
-    String readMemory(int pid, long address, int size) throws RemoteException;
-    boolean writeMemory(int pid, long address, String hexValue) throws RemoteException;
-    int findPid(String packageName) throws RemoteException;
-    long findBaseAddress(int pid, String libName) throws RemoteException;
-    long[] scanPattern(int pid, long startAddr, long endAddr, String pattern) throws RemoteException;
-    boolean pokeMemory(int pid, long address, int value) throws RemoteException;
-    int peekMemory(int pid, long address) throws RemoteException;
-
-    abstract class Stub extends Binder implements ISuService {
+    abstract class Stub extends android.os.Binder implements ISuService {
         private static final String DESCRIPTOR = "com.ff.modmenu.ISuService";
-        static final int TRANSACTION_readMemory = IBinder.FIRST_CALL_TRANSACTION;
-        static final int TRANSACTION_writeMemory = IBinder.FIRST_CALL_TRANSACTION + 1;
-        static final int TRANSACTION_findPid = IBinder.FIRST_CALL_TRANSACTION + 2;
-        static final int TRANSACTION_findBaseAddress = IBinder.FIRST_CALL_TRANSACTION + 3;
-        static final int TRANSACTION_scanPattern = IBinder.FIRST_CALL_TRANSACTION + 4;
-        static final int TRANSACTION_pokeMemory = IBinder.FIRST_CALL_TRANSACTION + 5;
-        static final int TRANSACTION_peekMemory = IBinder.FIRST_CALL_TRANSACTION + 6;
+        static final int TRANSACTION_findPid = 1;
+        static final int TRANSACTION_writeMemory = 2;
+        static final int TRANSACTION_readMemory = 3;
+        static final int TRANSACTION_closeSu = 4;
 
         public Stub() { attachInterface(this, DESCRIPTOR); }
 
@@ -38,108 +26,52 @@ public interface ISuService extends IInterface {
         @Override public IBinder asBinder() { return this; }
 
         @Override
-        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             switch (code) {
-                case TRANSACTION_readMemory: {
+                case TRANSACTION_findPid: {
                     data.enforceInterface(DESCRIPTOR);
-                    int pid = data.readInt();
-                    long address = data.readLong();
-                    int size = data.readInt();
-                    String result = readMemory(pid, address, size);
+                    int result = findPid(data.readString());
                     reply.writeNoException();
-                    reply.writeString(result);
+                    reply.writeInt(result);
                     return true;
                 }
                 case TRANSACTION_writeMemory: {
                     data.enforceInterface(DESCRIPTOR);
                     int pid = data.readInt();
                     long address = data.readLong();
-                    String hexValue = data.readString();
-                    boolean result = writeMemory(pid, address, hexValue);
+                    byte[] bytes = data.createByteArray();
+                    boolean result = writeMemory(pid, address, bytes);
                     reply.writeNoException();
                     reply.writeInt(result ? 1 : 0);
                     return true;
                 }
-                case TRANSACTION_findPid: {
-                    data.enforceInterface(DESCRIPTOR);
-                    String pkg = data.readString();
-                    int result = findPid(pkg);
-                    reply.writeNoException();
-                    reply.writeInt(result);
-                    return true;
-                }
-                case TRANSACTION_findBaseAddress: {
-                    data.enforceInterface(DESCRIPTOR);
-                    int pid = data.readInt();
-                    String libName = data.readString();
-                    long result = findBaseAddress(pid, libName);
-                    reply.writeNoException();
-                    reply.writeLong(result);
-                    return true;
-                }
-                case TRANSACTION_scanPattern: {
-                    data.enforceInterface(DESCRIPTOR);
-                    int pid = data.readInt();
-                    long startAddr = data.readLong();
-                    long endAddr = data.readLong();
-                    String pattern = data.readString();
-                    long[] result = scanPattern(pid, startAddr, endAddr, pattern);
-                    reply.writeNoException();
-                    reply.writeLongArray(result);
-                    return true;
-                }
-                case TRANSACTION_pokeMemory: {
+                case TRANSACTION_readMemory: {
                     data.enforceInterface(DESCRIPTOR);
                     int pid = data.readInt();
                     long address = data.readLong();
-                    int value = data.readInt();
-                    boolean result = pokeMemory(pid, address, value);
+                    int size = data.readInt();
+                    byte[] result = readMemory(pid, address, size);
                     reply.writeNoException();
-                    reply.writeInt(result ? 1 : 0);
+                    reply.writeByteArray(result);
                     return true;
                 }
-                case TRANSACTION_peekMemory: {
+                case TRANSACTION_closeSu: {
                     data.enforceInterface(DESCRIPTOR);
-                    int pid = data.readInt();
-                    long address = data.readLong();
-                    int result = peekMemory(pid, address);
+                    closeSu();
                     reply.writeNoException();
-                    reply.writeInt(result);
                     return true;
                 }
             }
             return super.onTransact(code, data, reply, flags);
         }
 
-        private static class Proxy implements ISuService {
+        static class Proxy implements ISuService {
             private IBinder mRemote;
             Proxy(IBinder remote) { mRemote = remote; }
             @Override public IBinder asBinder() { return mRemote; }
-            public String getInterfaceDescriptor() { return DESCRIPTOR; }
 
-            @Override public String readMemory(int pid, long address, int size) throws RemoteException {
-                Parcel data = Parcel.obtain(), reply = Parcel.obtain();
-                try {
-                    data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeLong(address); data.writeInt(size);
-                    mRemote.transact(TRANSACTION_readMemory, data, reply, 0);
-                    reply.readException();
-                    return reply.readString();
-                } finally { data.recycle(); reply.recycle(); }
-            }
-
-            @Override public boolean writeMemory(int pid, long address, String hexValue) throws RemoteException {
-                Parcel data = Parcel.obtain(), reply = Parcel.obtain();
-                try {
-                    data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeLong(address); data.writeString(hexValue);
-                    mRemote.transact(TRANSACTION_writeMemory, data, reply, 0);
-                    reply.readException();
-                    return reply.readInt() != 0;
-                } finally { data.recycle(); reply.recycle(); }
-            }
-
-            @Override public int findPid(String packageName) throws RemoteException {
+            @Override
+            public int findPid(String packageName) throws RemoteException {
                 Parcel data = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
@@ -150,49 +82,48 @@ public interface ISuService extends IInterface {
                 } finally { data.recycle(); reply.recycle(); }
             }
 
-            @Override public long findBaseAddress(int pid, String libName) throws RemoteException {
+            @Override
+            public boolean writeMemory(int pid, long address, byte[] bytes) throws RemoteException {
                 Parcel data = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeString(libName);
-                    mRemote.transact(TRANSACTION_findBaseAddress, data, reply, 0);
+                    data.writeInt(pid);
+                    data.writeLong(address);
+                    data.writeByteArray(bytes);
+                    mRemote.transact(TRANSACTION_writeMemory, data, reply, 0);
                     reply.readException();
-                    return reply.readLong();
+                    return reply.readInt() == 1;
                 } finally { data.recycle(); reply.recycle(); }
             }
 
-            @Override public long[] scanPattern(int pid, long startAddr, long endAddr, String pattern) throws RemoteException {
+            @Override
+            public byte[] readMemory(int pid, long address, int size) throws RemoteException {
                 Parcel data = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeLong(startAddr); data.writeLong(endAddr); data.writeString(pattern);
-                    mRemote.transact(TRANSACTION_scanPattern, data, reply, 0);
+                    data.writeInt(pid);
+                    data.writeLong(address);
+                    data.writeInt(size);
+                    mRemote.transact(TRANSACTION_readMemory, data, reply, 0);
                     reply.readException();
-                    return reply.createLongArray();
+                    return reply.createByteArray();
                 } finally { data.recycle(); reply.recycle(); }
             }
 
-            @Override public boolean pokeMemory(int pid, long address, int value) throws RemoteException {
+            @Override
+            public void closeSu() throws RemoteException {
                 Parcel data = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeLong(address); data.writeInt(value);
-                    mRemote.transact(TRANSACTION_pokeMemory, data, reply, 0);
+                    mRemote.transact(TRANSACTION_closeSu, data, reply, 0);
                     reply.readException();
-                    return reply.readInt() != 0;
-                } finally { data.recycle(); reply.recycle(); }
-            }
-
-            @Override public int peekMemory(int pid, long address) throws RemoteException {
-                Parcel data = Parcel.obtain(), reply = Parcel.obtain();
-                try {
-                    data.writeInterfaceToken(DESCRIPTOR);
-                    data.writeInt(pid); data.writeLong(address);
-                    mRemote.transact(TRANSACTION_peekMemory, data, reply, 0);
-                    reply.readException();
-                    return reply.readInt();
                 } finally { data.recycle(); reply.recycle(); }
             }
         }
     }
+
+    int findPid(String packageName) throws RemoteException;
+    boolean writeMemory(int pid, long address, byte[] bytes) throws RemoteException;
+    byte[] readMemory(int pid, long address, int size) throws RemoteException;
+    void closeSu() throws RemoteException;
 }
