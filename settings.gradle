@@ -1,2 +1,19 @@
-rootProject.name = 'FF-Mod-Menu'
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolution {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://maven.pkg.github.com/AdrianAndroid/shizuku' }
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = "FF Mod Menu"
 include ':app'
