@@ -4,7 +4,6 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
-    <!-- Declarar que queremos ver o Free Fire -->
     <queries>
         <package android:name="com.dts.freefireth" />
     </queries>
@@ -13,7 +12,7 @@
         android:label="FF Mod Menu"
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher_round"
-        android:theme="@style/AppTheme"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:supportsRtl="true"
         android:allowBackup="true">
 
@@ -26,25 +25,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <!-- Shizuku AIDL Service -->
-        <service
-            android:name=".service.SuService"
-            android:exported="false"
-            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL">
-            <intent-filter>
-                <action android:name="com.ff.modmenu.service.SuService"/>
-            </intent-filter>
-        </service>
-
-        <!-- Shizuku provider -->
-        <provider
-            android:name="rikka.shizuku.ShizukuProvider"
-            android:authorities="${applicationId}.shizuku"
-            android:multiprocess="false"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"/>
 
     </application>
 </manifest>
