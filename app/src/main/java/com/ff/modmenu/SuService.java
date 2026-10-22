@@ -27,6 +27,7 @@ public class SuService extends ISuService.Stub {
             os.flush();
             os.write("exit\n".getBytes());
             os.flush();
+            os.close();
             StringBuilder sb = new StringBuilder();
             byte[] buf = new byte[8192];
             int n;
@@ -35,7 +36,7 @@ public class SuService extends ISuService.Stub {
             }
             p.waitFor();
             String result = sb.toString().trim();
-            Log.d(TAG, "execCommand result length: " + result.length());
+            Log.d(TAG, "execCommand result: [" + result + "]");
             return result;
         } catch (Exception e) {
             Log.e(TAG, "execCommand error", e);
@@ -46,12 +47,49 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
+            // Metodo 1: pidof
             String result = execCommand("pidof " + packageName);
-            Log.d(TAG, "findPid result: " + result);
+            Log.d(TAG, "findPid pidof result: [" + result + "]");
             if (result != null && !result.isEmpty()) {
                 String[] parts = result.split("\\s+");
-                return Integer.parseInt(parts[0].trim());
+                for (String p : parts) {
+                    p = p.trim();
+                    if (!p.isEmpty()) {
+                        try {
+                            return Integer.parseInt(p);
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
+
+            // Metodo 2: ps + grep
+            result = execCommand("ps -A 2>/dev/null | grep '" + packageName + "' | grep -v grep");
+            Log.d(TAG, "findPid ps result: [" + result + "]");
+            if (result != null && !result.isEmpty()) {
+                for (String line : result.split("\n")) {
+                    line = line.trim();
+                    if (line.contains(packageName)) {
+                        String[] parts = line.split("\\s+");
+                        if (parts.length >= 2) {
+                            try {
+                                return Integer.parseInt(parts[1]);
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                }
+            }
+
+            // Metodo 3: ls /proc e achar cmdline
+            result = execCommand("for f in /proc/[0-9]*/cmdline; do if grep -q '" + packageName + "' \"$f\" 2>/dev/null; then echo \"$(dirname $f)\"; break; fi; done");
+            Log.d(TAG, "findPid proc result: [" + result + "]");
+            if (result != null && !result.isEmpty()) {
+                String dir = result.trim().split("\n")[0].trim();
+                String pidStr = dir.replaceAll("[^0-9]", "");
+                if (!pidStr.isEmpty()) {
+                    return Integer.parseInt(pidStr);
+                }
+            }
+
         } catch (Exception e) {
             Log.e(TAG, "findPid error", e);
         }
@@ -76,6 +114,7 @@ public class SuService extends ISuService.Stub {
             os.flush();
             os.write("exit\n".getBytes());
             os.flush();
+            os.close();
             byte[] buf = new byte[256];
             int n = is.read(buf);
             p.waitFor();
@@ -104,6 +143,7 @@ public class SuService extends ISuService.Stub {
             os.flush();
             os.write("exit\n".getBytes());
             os.flush();
+            os.close();
             byte[] result = new byte[size];
             int totalRead = 0;
             while (totalRead < size) {

@@ -21,13 +21,6 @@ public class FloatingModService extends Service {
     private int targetPid = -1;
     private TextView pidStatus;
 
-    private static final long OFFSET_SPEED = 0x0;
-    private static final long OFFSET_HP = 0x0;
-    private static final long OFFSET_AMMO = 0x0;
-    private static final long OFFSET_RECOIL = 0x0;
-    private static final long OFFSET_HEADSHOT = 0x0;
-    private static final long OFFSET_FOV = 0x0;
-
     @Override
     public IBinder onBind(Intent intent) { return null; }
 
@@ -139,18 +132,18 @@ public class FloatingModService extends Service {
         pidStatus = new TextView(this);
         pidStatus.setText("AGUARDANDO...");
         pidStatus.setTextColor(0xFFFFD700);
-        pidStatus.setTextSize(13);
+        pidStatus.setTextSize(12);
         statusRow.addView(pidStatus);
 
         Button btnRefresh = new Button(this);
         btnRefresh.setText("REFRESH");
-        btnRefresh.setTextSize(12);
+        btnRefresh.setTextSize(10);
         btnRefresh.setOnClickListener(v -> findTargetPid());
         statusRow.addView(btnRefresh);
 
         Button btnScanner = new Button(this);
         btnScanner.setText("SCAN");
-        btnScanner.setTextSize(12);
+        btnScanner.setTextSize(10);
         btnScanner.setOnClickListener(v -> {
             Intent i = new Intent(FloatingModService.this, MemoryScannerActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -160,15 +153,15 @@ public class FloatingModService extends Service {
 
         panel.addView(statusRow);
 
+        // Mod switches
         Switch swHeadshot = addSwitch(panel, "Headshot Hack", false);
         Switch swSpeed = addSwitch(panel, "Speed Hack", false);
-        Switch swAimbot = addSwitch(panel, "Aimbot", false);
         Switch swRecoil = addSwitch(panel, "No Recoil", false);
+        Switch swAimbot = addSwitch(panel, "Aimbot", false);
         Switch swAntena = addSwitch(panel, "Antena Hack", false);
         Switch swEsp = addSwitch(panel, "ESP Line", false);
-        Switch swFov = addSwitch(panel, "FOV Hack", false);
-        Switch swAmmo = addSwitch(panel, "Inf Ammo", false);
 
+        // Speed seekbar
         TextView speedLabel = new TextView(this);
         speedLabel.setText("Speed: 4.5");
         speedLabel.setTextColor(0xFFFFFFFF);
@@ -180,11 +173,7 @@ public class FloatingModService extends Service {
         speedSeek.setProgress(45);
         speedSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar sb, int progress, boolean fromUser) {
-                float speed = progress / 10.0f;
-                speedLabel.setText("Speed: " + speed);
-                if (swSpeed.isChecked() && targetPid > 0) {
-                    writeFloat(OFFSET_SPEED, speed);
-                }
+                speedLabel.setText("Speed: " + (progress / 10.0f));
             }
             public void onStartTrackingTouch(SeekBar sb) {}
             public void onStopTrackingTouch(SeekBar sb) {}
@@ -214,41 +203,6 @@ public class FloatingModService extends Service {
         menuPanel = panel;
         menuPanel.setVisibility(View.GONE);
         windowManager.addView(menuPanel, params);
-
-        swHeadshot.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) writeFloat(OFFSET_HEADSHOT, 999.0f);
-            else if (validPid()) writeFloat(OFFSET_HEADSHOT, 0.0f);
-        });
-
-        swSpeed.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) {
-                float speed = speedSeek.getProgress() / 10.0f;
-                writeFloat(OFFSET_SPEED, speed);
-            } else if (validPid()) writeFloat(OFFSET_SPEED, 1.0f);
-        });
-
-        swRecoil.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) writeFloat(OFFSET_RECOIL, 0.0f);
-            else if (validPid()) writeFloat(OFFSET_RECOIL, 1.0f);
-        });
-
-        swFov.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) writeFloat(OFFSET_FOV, 120.0f);
-            else if (validPid()) writeFloat(OFFSET_FOV, 90.0f);
-        });
-
-        swAmmo.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) writeInt(OFFSET_AMMO, 999);
-        });
-
-        swAimbot.setOnCheckedChangeListener((b, checked) ->
-            Toast.makeText(this, checked ? "Aimbot ON!" : "Aimbot OFF!", Toast.LENGTH_SHORT).show());
-
-        swAntena.setOnCheckedChangeListener((b, checked) ->
-            Toast.makeText(this, checked ? "Antena ON!" : "Antena OFF!", Toast.LENGTH_SHORT).show());
-
-        swEsp.setOnCheckedChangeListener((b, checked) ->
-            Toast.makeText(this, checked ? "ESP ON!" : "ESP OFF!", Toast.LENGTH_SHORT).show());
     }
 
     private Switch addSwitch(LinearLayout parent, String text, boolean checked) {
@@ -262,34 +216,46 @@ public class FloatingModService extends Service {
         return sw;
     }
 
-    private boolean validPid() {
-        return targetPid > 0 && suService != null;
-    }
-
     private void findTargetPid() {
         if (suService == null) {
             connectShizuku();
             if (suService == null) {
-                pidStatus.setText("Shizuku off!");
+                pidStatus.setText("Shizuku OFF!");
                 pidStatus.setTextColor(0xFFFF4444);
                 return;
             }
         }
+        pidStatus.setText("Procurando...");
+        pidStatus.setTextColor(0xFFFFD700);
+
         new Thread(() -> {
             try {
-                int pid = suService.findPid("com.dts.freefireth");
+                String pkg = "com.dts.freefireth";
+
+                // Debug: testa se Shizuku funciona
+                String whoami = suService.execCommand("whoami");
+                String shellTest = suService.execCommand("echo SHELL_OK");
+                int pid = suService.findPid(pkg);
+
+                String debugInfo = String.format("whoami=%s shell=%s pid=%d", whoami, shellTest, pid);
+                Log.d(TAG, "DEBUG: " + debugInfo);
                 targetPid = pid;
+
                 pidStatus.post(() -> {
                     if (pid > 0) {
                         pidStatus.setText("PID: " + pid + " OK");
                         pidStatus.setTextColor(0xFF00FF88);
                     } else {
-                        pidStatus.setText("FF nao aberto");
+                        pidStatus.setText("FF NAO ABERTO | " + debugInfo);
                         pidStatus.setTextColor(0xFFFF4444);
                     }
                 });
             } catch (Exception e) {
                 Log.e(TAG, "findPid error", e);
+                pidStatus.post(() -> {
+                    pidStatus.setText("ERRO: " + e.getMessage());
+                    pidStatus.setTextColor(0xFFFF4444);
+                });
             }
         }).start();
     }
@@ -298,41 +264,6 @@ public class FloatingModService extends Service {
         menuOpen = !menuOpen;
         menuPanel.setVisibility(menuOpen ? View.VISIBLE : View.GONE);
         if (menuOpen) findTargetPid();
-    }
-
-    private void writeFloat(long offset, float value) {
-        if (!validPid() || offset == 0) return;
-        new Thread(() -> {
-            try {
-                int bits = Float.floatToIntBits(value);
-                byte[] data = new byte[]{
-                    (byte) (bits & 0xFF),
-                    (byte) ((bits >> 8) & 0xFF),
-                    (byte) ((bits >> 16) & 0xFF),
-                    (byte) ((bits >> 24) & 0xFF)
-                };
-                suService.writeMemory(targetPid, offset, data);
-            } catch (Exception e) {
-                Log.e(TAG, "writeFloat error", e);
-            }
-        }).start();
-    }
-
-    private void writeInt(long offset, int value) {
-        if (!validPid() || offset == 0) return;
-        new Thread(() -> {
-            try {
-                byte[] data = new byte[]{
-                    (byte) (value & 0xFF),
-                    (byte) ((value >> 8) & 0xFF),
-                    (byte) ((value >> 16) & 0xFF),
-                    (byte) ((value >> 24) & 0xFF)
-                };
-                suService.writeMemory(targetPid, offset, data);
-            } catch (Exception e) {
-                Log.e(TAG, "writeInt error", e);
-            }
-        }).start();
     }
 
     @Override
