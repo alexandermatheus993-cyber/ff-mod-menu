@@ -25,8 +25,6 @@ public class MainActivity extends Activity {
     private boolean permissionGranted = false;
 
     private TextView statusText;
-    private TextView pidText;
-    private TextView baseText;
 
     private final Shizuku.OnBinderReceivedListener binderReceivedListener = new Shizuku.OnBinderReceivedListener() {
         @Override
@@ -94,6 +92,9 @@ public class MainActivity extends Activity {
         statusText.setText("Iniciando Shizuku...");
         statusText.setTextSize(18);
         layout.addView(statusText);
+
+        // ⚠️ FALTAVA ISSO — exibir o layout na tela!
+        setContentView(layout);
 
         // Attach listeners BEFORE checking
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener);
