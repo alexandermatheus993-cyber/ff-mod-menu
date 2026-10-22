@@ -1,11 +1,10 @@
 package com.ff.modmenu;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
-import android.util.Log;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
