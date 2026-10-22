@@ -13,6 +13,7 @@ public interface ISuService extends IInterface {
         static final int TRANSACTION_writeMemory = 2;
         static final int TRANSACTION_readMemory = 3;
         static final int TRANSACTION_closeSu = 4;
+        static final int TRANSACTION_execCommand = 5;
 
         public Stub() { attachInterface(this, DESCRIPTOR); }
 
@@ -28,14 +29,14 @@ public interface ISuService extends IInterface {
         @Override
         public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             switch (code) {
-                case TRANSACTION_findPid: {
+                case 1: {
                     data.enforceInterface(DESCRIPTOR);
                     int result = findPid(data.readString());
                     reply.writeNoException();
                     reply.writeInt(result);
                     return true;
                 }
-                case TRANSACTION_writeMemory: {
+                case 2: {
                     data.enforceInterface(DESCRIPTOR);
                     int pid = data.readInt();
                     long address = data.readLong();
@@ -45,7 +46,7 @@ public interface ISuService extends IInterface {
                     reply.writeInt(result ? 1 : 0);
                     return true;
                 }
-                case TRANSACTION_readMemory: {
+                case 3: {
                     data.enforceInterface(DESCRIPTOR);
                     int pid = data.readInt();
                     long address = data.readLong();
@@ -55,10 +56,17 @@ public interface ISuService extends IInterface {
                     reply.writeByteArray(result);
                     return true;
                 }
-                case TRANSACTION_closeSu: {
+                case 4: {
                     data.enforceInterface(DESCRIPTOR);
                     closeSu();
                     reply.writeNoException();
+                    return true;
+                }
+                case 5: {
+                    data.enforceInterface(DESCRIPTOR);
+                    String result = execCommand(data.readString());
+                    reply.writeNoException();
+                    reply.writeString(result);
                     return true;
                 }
             }
@@ -76,7 +84,7 @@ public interface ISuService extends IInterface {
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
                     data.writeString(packageName);
-                    mRemote.transact(TRANSACTION_findPid, data, reply, 0);
+                    mRemote.transact(1, data, reply, 0);
                     reply.readException();
                     return reply.readInt();
                 } finally { data.recycle(); reply.recycle(); }
@@ -90,7 +98,7 @@ public interface ISuService extends IInterface {
                     data.writeInt(pid);
                     data.writeLong(address);
                     data.writeByteArray(bytes);
-                    mRemote.transact(TRANSACTION_writeMemory, data, reply, 0);
+                    mRemote.transact(2, data, reply, 0);
                     reply.readException();
                     return reply.readInt() == 1;
                 } finally { data.recycle(); reply.recycle(); }
@@ -104,7 +112,7 @@ public interface ISuService extends IInterface {
                     data.writeInt(pid);
                     data.writeLong(address);
                     data.writeInt(size);
-                    mRemote.transact(TRANSACTION_readMemory, data, reply, 0);
+                    mRemote.transact(3, data, reply, 0);
                     reply.readException();
                     return reply.createByteArray();
                 } finally { data.recycle(); reply.recycle(); }
@@ -115,8 +123,20 @@ public interface ISuService extends IInterface {
                 Parcel data = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     data.writeInterfaceToken(DESCRIPTOR);
-                    mRemote.transact(TRANSACTION_closeSu, data, reply, 0);
+                    mRemote.transact(4, data, reply, 0);
                     reply.readException();
+                } finally { data.recycle(); reply.recycle(); }
+            }
+
+            @Override
+            public String execCommand(String cmd) throws RemoteException {
+                Parcel data = Parcel.obtain(), reply = Parcel.obtain();
+                try {
+                    data.writeInterfaceToken(DESCRIPTOR);
+                    data.writeString(cmd);
+                    mRemote.transact(5, data, reply, 0);
+                    reply.readException();
+                    return reply.readString();
                 } finally { data.recycle(); reply.recycle(); }
             }
         }
@@ -126,4 +146,5 @@ public interface ISuService extends IInterface {
     boolean writeMemory(int pid, long address, byte[] bytes) throws RemoteException;
     byte[] readMemory(int pid, long address, int size) throws RemoteException;
     void closeSu() throws RemoteException;
+    String execCommand(String cmd) throws RemoteException;
 }
