@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <queries>
@@ -40,6 +41,10 @@
             android:name=".SuService"
             android:exported="false"
             android:process=":su"/>
+
+        <service
+            android:name=".FloatingModService"
+            android:exported="false"/>
 
     </application>
 </manifest>
