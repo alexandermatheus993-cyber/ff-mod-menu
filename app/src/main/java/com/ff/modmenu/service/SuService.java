@@ -1,14 +1,9 @@
 package com.ff.modmenu.service;
 
-import android.os.ParcelFileDescriptor;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.ff.modmenu.ISuService;
 
@@ -18,7 +13,6 @@ public class SuService extends ISuService.Stub {
         System.loadLibrary("ffmod_native");
     }
 
-    private native long nativeFindBase(int pid, String libName);
     private native long[] nativeScanPattern(int pid, long start, long end, String pattern);
     private native boolean nativeWriteBytes(int pid, long addr, byte[] data);
     private native byte[] nativeReadBytes(int pid, long addr, int size);
@@ -28,21 +22,59 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
-            File proc = new File("/proc");
-            File[] files = proc.listFiles();
-            if (files == null) return -1;
-            for (File f : files) {
-                if (!f.isDirectory()) continue;
-                try {
-                    int pid = Integer.parseInt(f.getName());
-                    File cmdline = new File(f, "cmdline");
-                    BufferedReader br = new BufferedReader(new FileReader(cmdline));
-                    String cmd = br.readLine();
-                    br.close();
-                    if (cmd != null && cmd.contains(packageName)) return pid;
-                } catch (Exception ignored) {}
+            Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", "pidof " + packageName});
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = br.readLine();
+            br.close();
+            p.waitFor();
+            if (line != null && !line.isEmpty()) {
+                line = line.trim().split("\\s+")[0];
+                return Integer.parseInt(line);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            try {
+                File proc = new File("/proc");
+                File[] files = proc.listFiles();
+                if (files == null) return -1;
+                for (File f : files) {
+                    if (!f.isDirectory()) continue;
+                    try {
+                        int pid = Integer.parseInt(f.getName());
+                        File cmdline = new File(f, "cmdline");
+                        BufferedReader br = new BufferedReader(new FileReader(cmdline));
+                        String cmd = br.readLine();
+                        br.close();
+                        if (cmd != null && cmd.contains(packageName)) return pid;
+                    } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+        }
+        return -1;
+    }
+
+    @Override
+    public long findBaseAddress(int pid, String libName) {
+        try {
+            Process p = Runtime.getRuntime().exec(new String[]{
+                "su", "-c", "cat /proc/" + pid + "/maps"
+            });
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.contains(libName)) {
+                    br.close();
+                    p.waitFor();
+                    int dash = line.indexOf('-');
+                    if (dash > 0) {
+                        return Long.parseLong(line.substring(0, dash), 16);
+                    }
+                }
+            }
+            br.close();
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return -1;
     }
 
@@ -59,11 +91,6 @@ public class SuService extends ISuService.Stub {
     public boolean writeMemory(int pid, long address, String hexValue) {
         byte[] data = hexStringToByteArray(hexValue);
         return nativeWriteBytes(pid, address, data);
-    }
-
-    @Override
-    public long findBaseAddress(int pid, String libName) {
-        return nativeFindBase(pid, libName);
     }
 
     @Override
