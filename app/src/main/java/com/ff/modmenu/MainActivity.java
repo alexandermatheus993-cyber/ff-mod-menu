@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
         try {
             Shizuku.bindUserService(
                 new Shizuku.UserServiceArgs(
-                    new ComponentName(getPackageName(), SuService.class.getName()).flattenToString())
+                    new ComponentName(getPackageName(), SuService.class.getName()))
                     .daemon(false).processNameSuffix("su").debuggable(true).version(1),
                 svcConn);
         } catch (Exception e) {
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
         tv.setLayoutParams(tp);
 
         Switch sw = new Switch(this);
-        sw.setOnCheckedChangeListener((btn, on) -> cb.onToggle(btn, on));
+        sw.setOnCheckedChangeListener((android.widget.CompoundButton btn, boolean on) -> cb.onToggle(btn, on));
 
         row.addView(tv);
         row.addView(sw);
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
     }
 
     interface ToggleCallback {
-        void onToggle(Switch sw, boolean on);
+        void onToggle(android.widget.CompoundButton sw, boolean on);
     }
 
     // ============== LOGIN ==============
