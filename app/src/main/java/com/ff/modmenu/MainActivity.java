@@ -326,7 +326,7 @@ public class MainActivity extends Activity {
         checkShizuku();
     }
 
-    private boolean preCheck(Switch sw) {
+    private boolean preCheck(android.widget.CompoundButton sw) {
         if (!serviceBound) {
             Toast.makeText(this, "Shizuku nao conectado!", Toast.LENGTH_SHORT).show();
             sw.setChecked(false);
