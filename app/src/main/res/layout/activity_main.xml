@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0D0D0D">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FF00FF88"
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/toggle_menu_btn"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_red"
+            android:text="⚡ Ativar Menu Flutuante"
+            android:textColor="#FFFFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/launch_game_btn"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_green"
+            android:text="🎮 Abrir Free Fire"
+            android:textColor="#FFFFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CONFIGURAÇÕES RÁPIDAS"
+            android:textColor="#FFFF4444"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <Switch
+            android:id="@+id/switch_antiban"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🛡️ Anti-Ban Ativo"
+            android:textColor="#FFFFFFFF"
+            android:checked="true"
+            android:padding="12dp"
+            android:thumbTint="#FFFF4444"
+            android:trackTint="#FF333333"/>
+
+        <Switch
+            android:id="@+id/switch_esp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="👁️ ESP Players"
+            android:textColor="#FFFFFFFF"
+            android:checked="false"
+            android:padding="12dp"
+            android:thumbTint="#FFFF4444"
+            android:trackTint="#FF333333"/>
+
+        <Switch
+            android:id="@+id/switch_aimbot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎯 Aimbot"
+            android:textColor="#FFFFFFFF"
+            android:checked="false"
+            android:padding="12dp"
+            android:thumbTint="#FFFF4444"
+            android:trackTint="#FF333333"/>
+
+        <Switch
+            android:id="@+id/switch_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏃 Speed Hack"
+            android:textColor="#FFFFFFFF"
+            android:checked="false"
+            android:padding="12dp"
+            android:thumbTint="#FFFF4444"
+            android:trackTint="#FF333333"/>
+
+    </LinearLayout>
+</ScrollView>
