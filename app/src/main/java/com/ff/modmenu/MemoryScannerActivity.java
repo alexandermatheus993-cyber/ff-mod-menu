@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import java.util.ArrayList;
+import rikka.shizuku.Shizuku;
 
 public class MemoryScannerActivity extends Activity {
 
@@ -16,6 +18,7 @@ public class MemoryScannerActivity extends Activity {
     private ArrayList<Long> foundAddresses = new ArrayList<>();
     private ArrayAdapter<String> resultsAdapter;
     private String selectedType = "INT";
+    private TextView resultsCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,15 +29,13 @@ public class MemoryScannerActivity extends Activity {
         root.setPadding(20, 20, 20, 20);
         root.setBackgroundColor(0xFF1A1A2E);
 
-        // Título
         TextView title = new TextView(this);
-        title.setText("🔍 MEMORY SCANNER");
+        title.setText("MEMORY SCANNER");
         title.setTextSize(20);
         title.setTextColor(0xFF00FF88);
         title.setPadding(0, 0, 0, 20);
         root.addView(title);
 
-        // Status
         TextView status = new TextView(this);
         status.setText("Conectando ao Shizuku...");
         status.setTextColor(0xFFFFFFFF);
@@ -42,15 +43,13 @@ public class MemoryScannerActivity extends Activity {
         status.setPadding(0, 0, 0, 10);
         root.addView(status);
 
-        // PID Info
         TextView pidInfo = new TextView(this);
-        pidInfo.setText("PID: não encontrado");
+        pidInfo.setText("PID: nao encontrado");
         pidInfo.setTextColor(0xFFFFD700);
         pidInfo.setTextSize(14);
         pidInfo.setPadding(0, 0, 0, 10);
         root.addView(pidInfo);
 
-        // Linha: package name + botão find
         LinearLayout pidRow = new LinearLayout(this);
         pidRow.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -72,7 +71,6 @@ public class MemoryScannerActivity extends Activity {
         pidRow.addView(btnFindPid);
         root.addView(pidRow);
 
-        // Tipo de scan
         LinearLayout typeRow = new LinearLayout(this);
         typeRow.setOrientation(LinearLayout.HORIZONTAL);
         typeRow.setPadding(0, 10, 0, 10);
@@ -90,30 +88,28 @@ public class MemoryScannerActivity extends Activity {
         typeRow.addView(typeSpinner);
         root.addView(typeRow);
 
-        // Input de valor
         EditText valueInput = new EditText(this);
-        valueInput.setHint("Valor para buscar (ex: 100, 1.0, FF FF)");
+        valueInput.setHint("Valor (ex: 100, 1.0, FF FF)");
         valueInput.setTextSize(14);
         valueInput.setTextColor(0xFFFFFFFF);
         valueInput.setHintTextColor(0xFF888888);
         valueInput.setBackgroundColor(0xFF2A2A4A);
         root.addView(valueInput);
 
-        // Botões de scan
         LinearLayout scanRow = new LinearLayout(this);
         scanRow.setOrientation(LinearLayout.HORIZONTAL);
         scanRow.setPadding(0, 10, 0, 10);
 
         Button btnScan = new Button(this);
-        btnScan.setText("🔍 SCAN");
+        btnScan.setText("SCAN");
         btnScan.setTextSize(14);
 
         Button btnFilter = new Button(this);
-        btnFilter.setText("🔄 FILTRAR");
+        btnFilter.setText("FILTRAR");
         btnFilter.setTextSize(14);
 
         Button btnReset = new Button(this);
-        btnReset.setText("🗑 RESET");
+        btnReset.setText("RESET");
         btnReset.setTextSize(14);
 
         scanRow.addView(btnScan);
@@ -121,15 +117,13 @@ public class MemoryScannerActivity extends Activity {
         scanRow.addView(btnReset);
         root.addView(scanRow);
 
-        // Contador de resultados
-        TextView resultsCount = new TextView(this);
+        resultsCount = new TextView(this);
         resultsCount.setText("Resultados: 0");
         resultsCount.setTextColor(0xFF00FF88);
         resultsCount.setTextSize(14);
         resultsCount.setPadding(0, 5, 0, 5);
         root.addView(resultsCount);
 
-        // Lista de resultados
         ListView resultsList = new ListView(this);
         resultsList.setBackgroundColor(0xFF0D0D1A);
         resultsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
@@ -140,7 +134,6 @@ public class MemoryScannerActivity extends Activity {
         resultsList.setLayoutParams(listLp);
         root.addView(resultsList);
 
-        // Seção Write
         LinearLayout writeRow = new LinearLayout(this);
         writeRow.setOrientation(LinearLayout.HORIZONTAL);
         writeRow.setPadding(0, 10, 0, 0);
@@ -175,27 +168,26 @@ public class MemoryScannerActivity extends Activity {
         writeRow.addView(btnWrite);
 
         root.addView(writeRow);
-
         setContentView(root);
 
-        // Conectar ao Shizuku
+        // Conectar Shizuku
         try {
-            IBinder binder = ShizukuProvider.getBinder();
+            IBinder binder = Shizuku.getBinder();
             if (binder != null) {
                 suService = ISuService.Stub.asInterface(binder);
-                status.setText("✅ Shizuku conectado!");
+                status.setText("Shizuku conectado!");
             } else {
-                status.setText("❌ Shizuku não encontrado");
+                status.setText("Shizuku nao encontrado");
             }
         } catch (Exception e) {
-            status.setText("❌ Erro: " + e.getMessage());
+            status.setText("Erro: " + e.getMessage());
             Log.e(TAG, "Shizuku connect error", e);
         }
 
-        // Listeners
+        // Find PID
         btnFindPid.setOnClickListener(v -> {
             if (suService == null) {
-                Toast.makeText(this, "Shizuku não conectado!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Shizuku nao conectado!", Toast.LENGTH_SHORT).show();
                 return;
             }
             new Thread(() -> {
@@ -204,10 +196,10 @@ public class MemoryScannerActivity extends Activity {
                     targetPid = pid;
                     runOnUiThread(() -> {
                         if (pid > 0) {
-                            pidInfo.setText("PID: " + pid + " ✅");
+                            pidInfo.setText("PID: " + pid);
                             pidInfo.setTextColor(0xFF00FF88);
                         } else {
-                            pidInfo.setText("PID: não encontrado ❌");
+                            pidInfo.setText("PID: nao encontrado");
                             pidInfo.setTextColor(0xFFFF4444);
                         }
                     });
@@ -217,6 +209,7 @@ public class MemoryScannerActivity extends Activity {
             }).start();
         });
 
+        // Scan
         btnScan.setOnClickListener(v -> {
             if (targetPid <= 0) {
                 Toast.makeText(this, "Encontre o PID primeiro!", Toast.LENGTH_SHORT).show();
@@ -231,12 +224,14 @@ public class MemoryScannerActivity extends Activity {
             resultsAdapter.clear();
             foundAddresses.clear();
             resultsCount.setText("Scaneando...");
-            new Thread(() -> doFullScan(val)).start();
+            final String scanValue = val;
+            new Thread(() -> doFullScan(scanValue)).start();
         });
 
+        // Filter
         btnFilter.setOnClickListener(v -> {
             if (foundAddresses.isEmpty()) {
-                Toast.makeText(this, "Faça um scan primeiro!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Faca um scan primeiro!", Toast.LENGTH_SHORT).show();
                 return;
             }
             selectedType = typeSpinner.getSelectedItem().toString();
@@ -245,15 +240,18 @@ public class MemoryScannerActivity extends Activity {
                 Toast.makeText(this, "Digite um valor!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            new Thread(() -> filterResults(val)).start();
+            final String filterValue = val;
+            new Thread(() -> filterResults(filterValue)).start();
         });
 
+        // Reset
         btnReset.setOnClickListener(v -> {
             foundAddresses.clear();
             resultsAdapter.clear();
             resultsCount.setText("Resultados: 0");
         });
 
+        // Select address
         resultsList.setOnItemClickListener((parent, view, position, id) -> {
             if (position < foundAddresses.size()) {
                 long addr = foundAddresses.get(position);
@@ -261,9 +259,10 @@ public class MemoryScannerActivity extends Activity {
             }
         });
 
+        // Write
         btnWrite.setOnClickListener(v -> {
             if (targetPid <= 0 || suService == null) {
-                Toast.makeText(this, "PID ou Shizuku não disponível!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "PID ou Shizuku nao disponivel!", Toast.LENGTH_SHORT).show();
                 return;
             }
             try {
@@ -271,12 +270,13 @@ public class MemoryScannerActivity extends Activity {
                 String val = writeVal.getText().toString().trim();
                 byte[] data = parseValue(val, selectedType);
                 if (data != null) {
+                    final long writeAddr = addr;
+                    final byte[] writeData = data;
                     new Thread(() -> {
                         try {
-                            boolean ok = suService.writeMemory(targetPid, addr, data);
-                            runOnUiThread(() -> Toast.makeText(this,
-                                ok ? "✅ Escrito!" : "❌ Erro ao escrever",
-                                Toast.LENGTH_SHORT).show());
+                            boolean ok = suService.writeMemory(targetPid, writeAddr, writeData);
+                            runOnUiThread(() -> Toast.makeText(MemoryScannerActivity.this,
+                                ok ? "Escrito!" : "Erro ao escrever", Toast.LENGTH_SHORT).show());
                         } catch (Exception e) {
                             Log.e(TAG, "write error", e);
                         }
@@ -310,15 +310,13 @@ public class MemoryScannerActivity extends Activity {
                         (byte) ((bits >> 24) & 0xFF)
                     };
                 }
-                case "BYTE": {
+                case "BYTE":
                     return new byte[]{(byte) Integer.parseInt(val)};
-                }
                 case "HEX": {
                     String[] parts = val.split(" ");
                     byte[] data = new byte[parts.length];
-                    for (int i = 0; i < parts.length; i++) {
+                    for (int i = 0; i < parts.length; i++)
                         data[i] = (byte) Integer.parseInt(parts[i], 16);
-                    }
                     return data;
                 }
             }
@@ -333,15 +331,13 @@ public class MemoryScannerActivity extends Activity {
             byte[] searchBytes = parseValue(value, selectedType);
             if (searchBytes == null) return;
 
-            // Ler regiões de memória
             String maps = suService.execCommand("cat /proc/" + targetPid + "/maps");
             String[] lines = maps.split("\n");
 
-            long totalFound = 0;
             int regionCount = 0;
 
             for (String line : lines) {
-                if (!line.contains("rw")) continue; // só regiões read-write
+                if (!line.contains("rw")) continue;
 
                 String[] parts = line.split("\\s+");
                 if (parts.length < 1) continue;
@@ -354,19 +350,17 @@ public class MemoryScannerActivity extends Activity {
                     long end = Long.parseLong(addrRange[1], 16);
                     long regionSize = end - start;
 
-                    if (regionSize <= 0 || regionSize > 50 * 1024 * 1024) continue; // skip >50MB
+                    if (regionSize <= 0 || regionSize > 50 * 1024 * 1024) continue;
 
                     regionCount++;
-                    int finalRegionCount = regionCount;
+                    int currentRegion = regionCount;
 
-                    // Ler memória em chunks
                     int chunkSize = 4096;
                     for (long offset = 0; offset < regionSize; offset += chunkSize) {
                         int toRead = (int) Math.min(chunkSize, regionSize - offset);
                         byte[] data = suService.readMemory(targetPid, start + offset, toRead);
                         if (data == null) continue;
 
-                        // Scannar por padrão
                         for (int i = 0; i <= data.length - searchBytes.length; i++) {
                             boolean match = true;
                             for (int j = 0; j < searchBytes.length; j++) {
@@ -378,7 +372,6 @@ public class MemoryScannerActivity extends Activity {
                             if (match) {
                                 long foundAddr = start + offset + i;
                                 foundAddresses.add(foundAddr);
-                                totalFound++;
                                 String display = String.format("0x%X [%s]", foundAddr,
                                     readCurrentValue(foundAddr, selectedType));
                                 runOnUiThread(() -> {
@@ -388,12 +381,10 @@ public class MemoryScannerActivity extends Activity {
                             }
                         }
 
-                        // Atualizar progresso
-                        if (regionCount % 5 == 0) {
-                            final long tf = totalFound;
+                        if (currentRegion % 5 == 0) {
                             runOnUiThread(() -> resultsCount.setText(
-                                String.format("Scaneando... região %d | encontrados: %d",
-                                    finalRegionCount, tf)));
+                                String.format("Scaneando... regiao %d | encontrados: %d",
+                                    currentRegion, foundAddresses.size())));
                         }
                     }
                 } catch (Exception e) {
@@ -402,11 +393,11 @@ public class MemoryScannerActivity extends Activity {
             }
 
             runOnUiThread(() -> resultsCount.setText(
-                "✅ Scan completo! " + foundAddresses.size() + " resultados"));
+                "Scan completo! " + foundAddresses.size() + " resultados"));
 
         } catch (Exception e) {
             Log.e(TAG, "doFullScan error", e);
-            runOnUiThread(() -> resultsCount.setText("❌ Erro no scan"));
+            runOnUiThread(() -> resultsCount.setText("Erro no scan"));
         }
     }
 

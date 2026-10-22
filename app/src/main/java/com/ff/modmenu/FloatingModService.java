@@ -8,7 +8,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
-import android.os.IInterface;
+import rikka.shizuku.Shizuku;
 
 public class FloatingModService extends Service {
 
@@ -21,13 +21,12 @@ public class FloatingModService extends Service {
     private int targetPid = -1;
     private TextView pidStatus;
 
-    // Offsets conhecidos (substitua pelos encontrados no scanner)
-    private static final long OFFSET_SPEED = 0x0;      // FLOAT - velocidade
-    private static final long OFFSET_HP = 0x0;          // INT - pontos de vida
-    private static final long OFFSET_AMMO = 0x0;        // INT - munição
-    private static final long OFFSET_RECOIL = 0x0;      // FLOAT - recoil multiplier
-    private static final long OFFSET_HEADSHOT = 0x0;    // FLOAT - headshot chance
-    private static final long OFFSET_FOV = 0x0;         // FLOAT - field of view
+    private static final long OFFSET_SPEED = 0x0;
+    private static final long OFFSET_HP = 0x0;
+    private static final long OFFSET_AMMO = 0x0;
+    private static final long OFFSET_RECOIL = 0x0;
+    private static final long OFFSET_HEADSHOT = 0x0;
+    private static final long OFFSET_FOV = 0x0;
 
     @Override
     public IBinder onBind(Intent intent) { return null; }
@@ -42,12 +41,12 @@ public class FloatingModService extends Service {
 
     private void connectShizuku() {
         try {
-            android.os.IBinder binder = ShizukuProvider.getBinder();
+            IBinder binder = Shizuku.getBinder();
             if (binder != null) {
                 suService = ISuService.Stub.asInterface(binder);
-                Log.d(TAG, "✅ SuService conectado no Float");
+                Log.d(TAG, "SuService conectado no Float");
             } else {
-                Log.e(TAG, "❌ Shizuku binder nulo");
+                Log.e(TAG, "Shizuku binder nulo");
             }
         } catch (Exception e) {
             Log.e(TAG, "Shizuku error", e);
@@ -65,7 +64,6 @@ public class FloatingModService extends Service {
         params.x = 20;
         params.y = 300;
 
-        // Botão MOD
         LinearLayout btnLayout = new LinearLayout(this);
         btnLayout.setOrientation(LinearLayout.VERTICAL);
         btnLayout.setBackgroundColor(0xFF00FF88);
@@ -81,7 +79,6 @@ public class FloatingModService extends Service {
 
         menuButton = btnLayout;
 
-        // Drag
         final float[] touchX = new float[1];
         final float[] touchY = new float[1];
         final int[] startX = new int[1];
@@ -127,16 +124,14 @@ public class FloatingModService extends Service {
         panel.setBackgroundColor(0xDD1A1A2E);
         panel.setPadding(25, 25, 25, 25);
 
-        // Título
         TextView title = new TextView(this);
-        title.setText("🎮 FF MOD MENU");
+        title.setText("FF MOD MENU");
         title.setTextColor(0xFF00FF88);
         title.setTextSize(18);
         title.setGravity(Gravity.CENTER);
         title.setPadding(0, 0, 0, 15);
         panel.addView(title);
 
-        // Status PID com Shizuku
         LinearLayout statusRow = new LinearLayout(this);
         statusRow.setOrientation(LinearLayout.HORIZONTAL);
         statusRow.setPadding(0, 0, 0, 15);
@@ -148,13 +143,13 @@ public class FloatingModService extends Service {
         statusRow.addView(pidStatus);
 
         Button btnRefresh = new Button(this);
-        btnRefresh.setText("🔄");
+        btnRefresh.setText("REFRESH");
         btnRefresh.setTextSize(12);
         btnRefresh.setOnClickListener(v -> findTargetPid());
         statusRow.addView(btnRefresh);
 
         Button btnScanner = new Button(this);
-        btnScanner.setText("🔍");
+        btnScanner.setText("SCAN");
         btnScanner.setTextSize(12);
         btnScanner.setOnClickListener(v -> {
             Intent i = new Intent(FloatingModService.this, MemoryScannerActivity.class);
@@ -165,17 +160,15 @@ public class FloatingModService extends Service {
 
         panel.addView(statusRow);
 
-        // Switches
-        Switch swHeadshot = addSwitch(panel, "🎯 Headshot Hack", false);
-        Switch swSpeed = addSwitch(panel, "⚡ Speed Hack", false);
-        Switch swAimbot = addSwitch(panel, "🔫 Aimbot", false);
-        Switch swRecoil = addSwitch(panel, "🔥 No Recoil", false);
-        Switch swAntena = addSwitch(panel, "📡 Antena Hack", false);
-        Switch swEsp = addSwitch(panel, "👁 ESP Line", false);
-        Switch swFov = addSwitch(panel, "🔭 FOV Hack", false);
-        Switch swAmmo = addSwitch(panel, "💥 Inf Ammo", false);
+        Switch swHeadshot = addSwitch(panel, "Headshot Hack", false);
+        Switch swSpeed = addSwitch(panel, "Speed Hack", false);
+        Switch swAimbot = addSwitch(panel, "Aimbot", false);
+        Switch swRecoil = addSwitch(panel, "No Recoil", false);
+        Switch swAntena = addSwitch(panel, "Antena Hack", false);
+        Switch swEsp = addSwitch(panel, "ESP Line", false);
+        Switch swFov = addSwitch(panel, "FOV Hack", false);
+        Switch swAmmo = addSwitch(panel, "Inf Ammo", false);
 
-        // Seeker Speed
         TextView speedLabel = new TextView(this);
         speedLabel.setText("Speed: 4.5");
         speedLabel.setTextColor(0xFFFFFFFF);
@@ -198,9 +191,8 @@ public class FloatingModService extends Service {
         });
         panel.addView(speedSeek);
 
-        // Botão Launch FF
         Button btnLaunch = new Button(this);
-        btnLaunch.setText("🚀 ABRIR FREE FIRE");
+        btnLaunch.setText("ABRIR FREE FIRE");
         btnLaunch.setTextSize(14);
         btnLaunch.setOnClickListener(v -> {
             Intent launch = getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
@@ -208,14 +200,13 @@ public class FloatingModService extends Service {
                 launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(launch);
             } else {
-                Toast.makeText(this, "Free Fire não instalado!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
             }
         });
         panel.addView(btnLaunch);
 
-        // Fechar
         Button btnClose = new Button(this);
-        btnClose.setText("❌ FECHAR");
+        btnClose.setText("FECHAR");
         btnClose.setTextSize(12);
         btnClose.setOnClickListener(v -> toggleMenu());
         panel.addView(btnClose);
@@ -224,58 +215,40 @@ public class FloatingModService extends Service {
         menuPanel.setVisibility(View.GONE);
         windowManager.addView(menuPanel, params);
 
-        // Listeners dos switches
         swHeadshot.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) {
-                Toast.makeText(this, "Headshot ON!", Toast.LENGTH_SHORT).show();
-                writeFloat(OFFSET_HEADSHOT, 999.0f);
-            } else if (validPid()) {
-                writeFloat(OFFSET_HEADSHOT, 0.0f);
-            }
+            if (checked && validPid()) writeFloat(OFFSET_HEADSHOT, 999.0f);
+            else if (validPid()) writeFloat(OFFSET_HEADSHOT, 0.0f);
         });
 
         swSpeed.setOnCheckedChangeListener((b, checked) -> {
             if (checked && validPid()) {
                 float speed = speedSeek.getProgress() / 10.0f;
                 writeFloat(OFFSET_SPEED, speed);
-            } else if (validPid()) {
-                writeFloat(OFFSET_SPEED, 1.0f);
-            }
-        });
-
-        swAimbot.setOnCheckedChangeListener((b, checked) -> {
-            Toast.makeText(this, checked ? "Aimbot ON!" : "Aimbot OFF!", Toast.LENGTH_SHORT).show();
+            } else if (validPid()) writeFloat(OFFSET_SPEED, 1.0f);
         });
 
         swRecoil.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) {
-                writeFloat(OFFSET_RECOIL, 0.0f);
-            } else if (validPid()) {
-                writeFloat(OFFSET_RECOIL, 1.0f);
-            }
-        });
-
-        swAntena.setOnCheckedChangeListener((b, checked) -> {
-            Toast.makeText(this, checked ? "Antena ON!" : "Antena OFF!", Toast.LENGTH_SHORT).show();
-        });
-
-        swEsp.setOnCheckedChangeListener((b, checked) -> {
-            Toast.makeText(this, checked ? "ESP ON!" : "ESP OFF!", Toast.LENGTH_SHORT).show();
+            if (checked && validPid()) writeFloat(OFFSET_RECOIL, 0.0f);
+            else if (validPid()) writeFloat(OFFSET_RECOIL, 1.0f);
         });
 
         swFov.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) {
-                writeFloat(OFFSET_FOV, 120.0f);
-            } else if (validPid()) {
-                writeFloat(OFFSET_FOV, 90.0f);
-            }
+            if (checked && validPid()) writeFloat(OFFSET_FOV, 120.0f);
+            else if (validPid()) writeFloat(OFFSET_FOV, 90.0f);
         });
 
         swAmmo.setOnCheckedChangeListener((b, checked) -> {
-            if (checked && validPid()) {
-                writeInt(OFFSET_AMMO, 999);
-            }
+            if (checked && validPid()) writeInt(OFFSET_AMMO, 999);
         });
+
+        swAimbot.setOnCheckedChangeListener((b, checked) ->
+            Toast.makeText(this, checked ? "Aimbot ON!" : "Aimbot OFF!", Toast.LENGTH_SHORT).show());
+
+        swAntena.setOnCheckedChangeListener((b, checked) ->
+            Toast.makeText(this, checked ? "Antena ON!" : "Antena OFF!", Toast.LENGTH_SHORT).show());
+
+        swEsp.setOnCheckedChangeListener((b, checked) ->
+            Toast.makeText(this, checked ? "ESP ON!" : "ESP OFF!", Toast.LENGTH_SHORT).show());
     }
 
     private Switch addSwitch(LinearLayout parent, String text, boolean checked) {
@@ -297,7 +270,7 @@ public class FloatingModService extends Service {
         if (suService == null) {
             connectShizuku();
             if (suService == null) {
-                pidStatus.setText("❌ Shizuku off!");
+                pidStatus.setText("Shizuku off!");
                 pidStatus.setTextColor(0xFFFF4444);
                 return;
             }
@@ -308,19 +281,15 @@ public class FloatingModService extends Service {
                 targetPid = pid;
                 pidStatus.post(() -> {
                     if (pid > 0) {
-                        pidStatus.setText("PID: " + pid + " ✅");
+                        pidStatus.setText("PID: " + pid + " OK");
                         pidStatus.setTextColor(0xFF00FF88);
                     } else {
-                        pidStatus.setText("FF não aberto ❌");
+                        pidStatus.setText("FF nao aberto");
                         pidStatus.setTextColor(0xFFFF4444);
                     }
                 });
             } catch (Exception e) {
                 Log.e(TAG, "findPid error", e);
-                pidStatus.post(() -> {
-                    pidStatus.setText("Erro PID!");
-                    pidStatus.setTextColor(0xFFFF4444);
-                });
             }
         }).start();
     }
@@ -342,8 +311,7 @@ public class FloatingModService extends Service {
                     (byte) ((bits >> 16) & 0xFF),
                     (byte) ((bits >> 24) & 0xFF)
                 };
-                boolean ok = suService.writeMemory(targetPid, offset, data);
-                Log.d(TAG, String.format("writeFloat 0x%X = %f → %s", offset, value, ok));
+                suService.writeMemory(targetPid, offset, data);
             } catch (Exception e) {
                 Log.e(TAG, "writeFloat error", e);
             }
@@ -360,8 +328,7 @@ public class FloatingModService extends Service {
                     (byte) ((value >> 16) & 0xFF),
                     (byte) ((value >> 24) & 0xFF)
                 };
-                boolean ok = suService.writeMemory(targetPid, offset, data);
-                Log.d(TAG, String.format("writeInt 0x%X = %d → %s", offset, value, ok));
+                suService.writeMemory(targetPid, offset, data);
             } catch (Exception e) {
                 Log.e(TAG, "writeInt error", e);
             }
