@@ -1,79 +1,85 @@
 package com.ff.modmenu;
 
-import java.io.BufferedReader;
+import android.os.Handler;
+import android.os.Looper;
 import java.io.File;
-import java.io.FileReader;
 
-public class GameScanner {
-    public interface Callback {
-        void onGameFound(int pid);
+public class GameScanner extends Thread {
+    private static final String TARGET = "com.dts.freefireth";
+    private volatile boolean running = true;
+    private PidCallback callback;
+    private Handler handler;
+    private int lastPid = -1;
+
+    public interface PidCallback {
+        void onPidFound(int pid);
     }
 
-    private volatile boolean running = false;
-    private Thread thread;
-    private final Callback callback;
-
-    public GameScanner(Callback callback) {
+    public GameScanner(PidCallback callback) {
         this.callback = callback;
+        this.handler = new Handler(Looper.getMainLooper());
     }
 
-    public void start() {
-        running = true;
-        thread = new Thread(() -> {
-            while (running) {
-                try {
-                    int pid = findGamePid();
-                    if (pid > 0) {
-                        callback.onGameFound(pid);
-                        while (running && new File("/proc/" + pid).exists()) {
-                            Thread.sleep(3000);
-                        }
-                    } else {
-                        Thread.sleep(2000);
-                    }
-                } catch (Exception e) {
-                    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-                }
-            }
-        }, "GameScanner");
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    public void stop() {
-        running = false;
-    }
-
-    private int findGamePid() {
-        File[] files = new File("/proc").listFiles();
-        if (files == null) return 0;
-        for (File f : files) {
-            if (!f.isDirectory()) continue;
+    @Override
+    public void run() {
+        while (running) {
             try {
-                Integer.parseInt(f.getName());
-                BufferedReader br = new BufferedReader(new FileReader(new File(f, "cmdline")));
-                String cmd = br.readLine();
-                br.close();
-                if (cmd != null && cmd.contains("com.dts.freefireth")) {
-                    return Integer.parseInt(f.getName());
+                int pid = findPid();
+                if (pid > 0 && pid != lastPid) {
+                    lastPid = pid;
+                    handler.post(new Runnable() {
+                        public void run() {
+                            callback.onPidFound(pid);
+                        }
+                    });
                 }
-            } catch (Exception ignored) {}
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+                try { Thread.sleep(5000); } catch (InterruptedException ex) {}
+            }
         }
-        return 0;
     }
 
-    public static long getLibBase(int pid, String libName) {
+    private int findPid() {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("/proc/" + pid + "/maps"));
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.contains(libName) && line.contains("r-xp")) {
-                    br.close();
-                    return Long.parseLong(line.split("-")[0], 16);
+            File proc = new File("/proc");
+            File[] dirs = proc.listFiles();
+            if (dirs == null) return -1;
+            for (File d : dirs) {
+                if (!d.isDirectory()) continue;
+                String name = d.getName();
+                boolean numeric = true;
+                for (int i = 0; i < name.length(); i++) {
+                    if (!Character.isDigit(name.charAt(i))) {
+                        numeric = false;
+                        break;
+                    }
                 }
+                if (!numeric) continue;
+                try {
+                    File cmdline = new File(d, "cmdline");
+                    if (cmdline.exists() && cmdline.canRead()) {
+                        java.io.FileInputStream fis = new java.io.FileInputStream(cmdline);
+                        byte[] buf = new byte[256];
+                        int len = fis.read(buf);
+                        fis.close();
+                        if (len > 0) {
+                            String cmd = new String(buf, 0, len).trim();
+                            if (cmd.contains(TARGET)) {
+                                return Integer.parseInt(name);
+                            }
+                        }
+                    }
+                } catch (Exception e2) {}
             }
-            br.close();
-        } catch (Exception e) { e.printStackTrace(); }
-        return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public void stopScanner() {
+        running = false;
     }
 }
