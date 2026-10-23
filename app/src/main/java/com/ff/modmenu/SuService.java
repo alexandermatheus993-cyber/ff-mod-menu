@@ -2,6 +2,7 @@ package com.ff.modmenu;
 
 import android.util.Log;
 import java.io.*;
+import java.lang.reflect.Method;
 
 public class SuService extends ISuService.Stub {
     private static final String TAG = "FFModMenu";
@@ -9,7 +10,12 @@ public class SuService extends ISuService.Stub {
     @Override
     public String execCommand(String cmd) {
         try {
-            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
+            // Usa Shizuku.newProcess() pra ter permissão de shell
+            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+            Method newProcess = shizukuClass.getDeclaredMethod("newProcess", String[].class, String.class, String.class);
+            newProcess.setAccessible(true);
+            Process process = (Process) newProcess.invoke(null, new String[]{"sh", "-c", cmd}, null, null);
+
             InputStream is = process.getInputStream();
             InputStream es = process.getErrorStream();
             StringBuilder sb = new StringBuilder();
@@ -19,7 +25,10 @@ public class SuService extends ISuService.Stub {
             byte[] ebuf = new byte[4096];
             while ((n = es.read(ebuf)) != -1) sb.append(new String(ebuf, 0, n));
             process.waitFor();
-            return sb.toString().trim();
+
+            String result = sb.toString().trim();
+            Log.d(TAG, "execCommand result: '" + result + "'");
+            return result;
         } catch (Exception e) {
             Log.e(TAG, "execCommand error", e);
             return "ERROR:" + e.getMessage();
@@ -29,10 +38,31 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
-            String result = execCommand("ps -A | grep " + packageName + " | grep -v grep | head -1 | awk '{print $2}'");
+            // Tenta pidof primeiro (mais rápido)
+            String result = execCommand("pidof " + packageName);
             if (result != null && !result.isEmpty() && !result.startsWith("ERROR")) {
-                return Integer.parseInt(result.trim());
+                int pid = Integer.parseInt(result.trim().split(" ")[0]);
+                Log.d(TAG, "findPid via pidof: " + pid);
+                return pid;
             }
+
+            // Fallback: ps -A | grep
+            result = execCommand("ps -A | grep " + packageName + " | grep -v grep | head -1 | awk '{print $2}'");
+            if (result != null && !result.isEmpty() && !result.startsWith("ERROR")) {
+                int pid = Integer.parseInt(result.trim().split(" ")[0]);
+                Log.d(TAG, "findPid via ps: " + pid);
+                return pid;
+            }
+
+            // Fallback 2: procura por Garena
+            result = execCommand("ps -A | grep -i 'freefire\\|garena\\|dts.free' | grep -v grep | head -1 | awk '{print $2}'");
+            if (result != null && !result.isEmpty() && !result.startsWith("ERROR")) {
+                int pid = Integer.parseInt(result.trim().split(" ")[0]);
+                Log.d(TAG, "findPid via fallback: " + pid);
+                return pid;
+            }
+
+            Log.w(TAG, "findPid: process not found for " + packageName);
         } catch (Exception e) {
             Log.e(TAG, "findPid error", e);
         }
@@ -77,7 +107,7 @@ public class SuService extends ISuService.Stub {
     @Override
     public long findBaseAddress(int pid, String libName) {
         try {
-            String maps = execCommand("cat /proc/" + pid + "/maps");
+            String maps = execCommand("cat /proc/" + pid + "/maps 2>/dev/null");
             if (maps == null || maps.isEmpty()) return -1;
             for (String line : maps.split("\n")) {
                 if (line.contains(libName)) {
@@ -95,7 +125,6 @@ public class SuService extends ISuService.Stub {
 
     @Override
     public long[] scanPattern(int pid, long startAddr, long endAddr, String pattern) {
-        // TODO: implement pattern scan
         return new long[0];
     }
 
