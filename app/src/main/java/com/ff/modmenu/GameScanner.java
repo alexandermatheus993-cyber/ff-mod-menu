@@ -3,6 +3,9 @@ package com.ff.modmenu;
 import android.os.Handler;
 import android.os.Looper;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class GameScanner extends Thread {
     private static final String TARGET = "com.dts.freefireth";
@@ -27,9 +30,10 @@ public class GameScanner extends Thread {
                 int pid = findPid();
                 if (pid > 0 && pid != lastPid) {
                     lastPid = pid;
+                    final int p = pid;
                     handler.post(new Runnable() {
                         public void run() {
-                            callback.onPidFound(pid);
+                            callback.onPidFound(p);
                         }
                     });
                 }
@@ -60,7 +64,7 @@ public class GameScanner extends Thread {
                 try {
                     File cmdline = new File(d, "cmdline");
                     if (cmdline.exists() && cmdline.canRead()) {
-                        java.io.FileInputStream fis = new java.io.FileInputStream(cmdline);
+                        FileInputStream fis = new FileInputStream(cmdline);
                         byte[] buf = new byte[256];
                         int len = fis.read(buf);
                         fis.close();
@@ -77,6 +81,32 @@ public class GameScanner extends Thread {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public static long getLibBase(int pid, String libName) {
+        long base = 0;
+        try {
+            String mapsPath = "/proc/" + pid + "/maps";
+            File mapsFile = new File(mapsPath);
+            if (!mapsFile.exists() || !mapsFile.canRead()) return 0;
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(mapsFile)));
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.contains(libName) && line.contains("r-xp")) {
+                    String[] parts = line.split("-");
+                    if (parts.length > 0) {
+                        base = Long.parseLong(parts[0].trim(), 16);
+                        br.close();
+                        return base;
+                    }
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return base;
     }
 
     public void stopScanner() {
