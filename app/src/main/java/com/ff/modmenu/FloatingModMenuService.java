@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -39,6 +40,8 @@ public class FloatingModMenuService extends Service {
     private GameScanner scanner;
     private Handler h;
     private TextView statusText;
+    private static final int NOTIFICATION_ID = 1;
+    private static final String CHANNEL_ID = "ff_mod_channel";
 
     @Override
     public IBinder onBind(Intent i) {
@@ -51,6 +54,14 @@ public class FloatingModMenuService extends Service {
         h = new Handler(Looper.getMainLooper());
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         hack = new GameHack();
+        
+        // Verificar permissão de overlay primeiro
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Permissão de sobreposição não concedida", Toast.LENGTH_LONG).show();
+            stopSelf();
+            return;
+        }
+        
         startForegroundCompat();
         initShizuku();
         startScanner();
@@ -61,26 +72,30 @@ public class FloatingModMenuService extends Service {
         try {
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel ch = new NotificationChannel(
-                    "ff_mod", "FF Mod Menu", NotificationManager.IMPORTANCE_LOW);
+                    CHANNEL_ID, "FF Mod Menu", NotificationManager.IMPORTANCE_LOW);
+                ch.setDescription("Canal para o FF Mod Menu");
                 NotificationManager nm = getSystemService(NotificationManager.class);
                 if (nm != null) nm.createNotificationChannel(ch);
-                Notification n = new Notification.Builder(this, "ff_mod")
+                
+                Notification n = new Notification.Builder(this, CHANNEL_ID)
                     .setContentTitle("FF Mod Menu")
-                    .setContentText("Mod ativo")
+                    .setContentText("Mod ativo - Acessando memória")
                     .setSmallIcon(android.R.drawable.ic_menu_info_details)
                     .setOngoing(true)
                     .build();
-                startForeground(1, n);
+                startForeground(NOTIFICATION_ID, n);
             } else {
                 Notification n = new Notification.Builder(this)
                     .setContentTitle("FF Mod Menu")
-                    .setContentText("Mod ativo")
+                    .setContentText("Mod ativo - Acessando memória")
                     .setSmallIcon(android.R.drawable.ic_menu_info_details)
                     .build();
-                startForeground(1, n);
+                startForeground(NOTIFICATION_ID, n);
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(this, "Erro ao iniciar serviço: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            stopSelf();
         }
     }
 
@@ -90,13 +105,14 @@ public class FloatingModMenuService extends Service {
             hack.setService(ServiceHolder.get());
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(this, "Shizuku não disponível: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void startScanner() {
         try {
             scanner = new GameScanner(new GameScanner.PidCallback() {
-                public void onPidFound(int pid) {
+                public void onPidFound(final int pid) {
                     hack.setPid(pid);
                     h.post(new Runnable() {
                         public void run() {
@@ -122,61 +138,66 @@ public class FloatingModMenuService extends Service {
     }
 
     private void createIcon() {
-        touchIcon = new ImageView(this);
-        Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bmp);
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(Color.parseColor("#FF4081"));
-        c.drawCircle(32, 32, 30, p);
-        p.setColor(Color.WHITE);
-        p.setTextSize(28);
-        p.setTypeface(Typeface.DEFAULT_BOLD);
-        p.setTextAlign(Paint.Align.CENTER);
-        c.drawText("M", 32, 42, p);
-        touchIcon.setImageBitmap(bmp);
+        try {
+            touchIcon = new ImageView(this);
+            Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(bmp);
+            Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            p.setColor(Color.parseColor("#FF4081"));
+            c.drawCircle(32, 32, 30, p);
+            p.setColor(Color.WHITE);
+            p.setTextSize(28);
+            p.setTypeface(Typeface.DEFAULT_BOLD);
+            p.setTextAlign(Paint.Align.CENTER);
+            c.drawText("M", 32, 42, p);
+            touchIcon.setImageBitmap(bmp);
 
-        int type;
-        if (Build.VERSION.SDK_INT >= 26) {
-            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            type = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-
-        iconP = new WindowManager.LayoutParams(dp(50), dp(50), type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
-        iconP.gravity = Gravity.TOP | Gravity.START;
-        iconP.x = 10;
-        iconP.y = 200;
-
-        touchIcon.setOnTouchListener(new View.OnTouchListener() {
-            int ix, iy;
-            float sx, sy;
-            boolean moved;
-
-            public boolean onTouch(View v, MotionEvent e) {
-                switch (e.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        ix = iconP.x;
-                        iy = iconP.y;
-                        sx = e.getRawX();
-                        sy = e.getRawY();
-                        moved = false;
-                        return false;
-                    case MotionEvent.ACTION_MOVE:
-                        iconP.x = ix + (int)(e.getRawX() - sx);
-                        iconP.y = iy + (int)(e.getRawY() - sy);
-                        try { wm.updateViewLayout(touchIcon, iconP); } catch (Exception ex) {}
-                        moved = true;
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        if (!moved) toggleMenu();
-                        return true;
-                }
-                return false;
+            int type;
+            if (Build.VERSION.SDK_INT >= 26) {
+                type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                type = WindowManager.LayoutParams.TYPE_PHONE;
             }
-        });
 
-        wm.addView(touchIcon, iconP);
+            iconP = new WindowManager.LayoutParams(dp(50), dp(50), type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
+            iconP.gravity = Gravity.TOP | Gravity.START;
+            iconP.x = 10;
+            iconP.y = 200;
+
+            touchIcon.setOnTouchListener(new View.OnTouchListener() {
+                int ix, iy;
+                float sx, sy;
+                boolean moved;
+
+                public boolean onTouch(View v, MotionEvent e) {
+                    switch (e.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            ix = iconP.x;
+                            iy = iconP.y;
+                            sx = e.getRawX();
+                            sy = e.getRawY();
+                            moved = false;
+                            return false;
+                        case MotionEvent.ACTION_MOVE:
+                            iconP.x = ix + (int)(e.getRawX() - sx);
+                            iconP.y = iy + (int)(e.getRawY() - sy);
+                            try { wm.updateViewLayout(touchIcon, iconP); } catch (Exception ex) {}
+                            moved = true;
+                            return true;
+                        case MotionEvent.ACTION_UP:
+                            if (!moved) toggleMenu();
+                            return true;
+                    }
+                    return false;
+                }
+            });
+
+            wm.addView(touchIcon, iconP);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao criar ícone: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void toggleMenu() {
@@ -196,105 +217,110 @@ public class FloatingModMenuService extends Service {
             return;
         }
 
-        menuLayout = new LinearLayout(this);
-        menuLayout.setOrientation(LinearLayout.VERTICAL);
-        menuLayout.setBackgroundColor(Color.parseColor("#DD1A1A2E"));
+        try {
+            menuLayout = new LinearLayout(this);
+            menuLayout.setOrientation(LinearLayout.VERTICAL);
+            menuLayout.setBackgroundColor(Color.parseColor("#DD1A1A2E"));
 
-        LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        header.setBackgroundColor(Color.parseColor("#FF4081"));
-        header.setPadding(dp(16), dp(12), dp(16), dp(12));
-        header.setGravity(Gravity.CENTER_VERTICAL);
+            LinearLayout header = new LinearLayout(this);
+            header.setOrientation(LinearLayout.HORIZONTAL);
+            header.setBackgroundColor(Color.parseColor("#FF4081"));
+            header.setPadding(dp(16), dp(12), dp(16), dp(12));
+            header.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView title = new TextView(this);
-        title.setText("FF MOD MENU");
-        title.setTextColor(Color.WHITE);
-        title.setTextSize(18);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        title.setLayoutParams(titleLp);
-        header.addView(title);
+            TextView title = new TextView(this);
+            title.setText("FF MOD MENU");
+            title.setTextColor(Color.WHITE);
+            title.setTextSize(18);
+            title.setTypeface(Typeface.DEFAULT_BOLD);
+            LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            title.setLayoutParams(titleLp);
+            header.addView(title);
 
-        TextView closeBtn = new TextView(this);
-        closeBtn.setText("X");
-        closeBtn.setTextColor(Color.WHITE);
-        closeBtn.setTextSize(20);
-        closeBtn.setPadding(dp(12), 0, 0, 0);
-        closeBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) { hideMenu(); }
-        });
-        header.addView(closeBtn);
-        menuLayout.addView(header);
+            TextView closeBtn = new TextView(this);
+            closeBtn.setText("X");
+            closeBtn.setTextColor(Color.WHITE);
+            closeBtn.setTextSize(20);
+            closeBtn.setPadding(dp(12), 0, 0, 0);
+            closeBtn.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) { hideMenu(); }
+            });
+            header.addView(closeBtn);
+            menuLayout.addView(header);
 
-        statusText = new TextView(this);
-        if (hack.isReady()) {
-            statusText.setText("Status CONECTADO PID " + hack.getPid());
-            statusText.setTextColor(Color.GREEN);
-        } else {
-            statusText.setText("Status Esperando Free Fire");
-            statusText.setTextColor(Color.YELLOW);
+            statusText = new TextView(this);
+            if (hack.isReady()) {
+                statusText.setText("Status CONECTADO PID " + hack.getPid());
+                statusText.setTextColor(Color.GREEN);
+            } else {
+                statusText.setText("Status Esperando Free Fire");
+                statusText.setTextColor(Color.YELLOW);
+            }
+            statusText.setTextSize(12);
+            statusText.setPadding(dp(16), dp(8), dp(16), dp(4));
+            menuLayout.addView(statusText);
+
+            ScrollView scroll = new ScrollView(this);
+            LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(400));
+            scroll.setLayoutParams(scrollLp);
+
+            LinearLayout body = new LinearLayout(this);
+            body.setOrientation(LinearLayout.VERTICAL);
+            body.setPadding(dp(8), dp(8), dp(8), dp(16));
+
+            addCategory(body, "AIM");
+            addSeek(body, "AIMSPOT", 0, 3, 0);
+            addToggle(body, "AIM TIRO", 1);
+            addToggle(body, "AIM MIRA", 2);
+            addToggle(body, "AIM AGACHADO", 3);
+            addSeek(body, "Aim FOV", 4, 10, 0);
+            addSeek(body, "Aim puxada", 5, 10, 0);
+            addSeek(body, "Sensibilidade", 6, 3, 0);
+
+            addCategory(body, "ESP");
+            addToggle(body, "ESP FIRE", 7);
+            addToggle(body, "ESP BOT PLAYER", 8);
+            addToggle(body, "ESP DISTANCE", 9);
+            addToggle(body, "ESP NAME", 10);
+
+            addCategory(body, "COMBAT");
+            addSeek(body, "Chuva de balas", 11, 15, 0);
+            addSeek(body, "Speed 50X", 12, 5, 0);
+            addSeek(body, "Speed HACKER", 13, 5, 0);
+            addToggle(body, "TELEKIL", 14);
+            addToggle(body, "TELEKIL PRO", 15);
+            addToggle(body, "AIM TELEKIL", 16);
+
+            addCategory(body, "MISC");
+            addToggle(body, "GHOST HACKER", 17);
+            addToggle(body, "Fly Carro", 18);
+            addToggle(body, "Fly Player", 19);
+            addSeek(body, "Fly Speed", 20, 9, 0);
+            addToggle(body, "FAKE NAME", 21);
+            addToggle(body, "MODO NOITE", 22);
+            addToggle(body, "MEDKIT CORRENDO", 23);
+            addToggle(body, "ZE PEDRINHA", 24);
+            addToggle(body, "DESBANIR IMEI", 25);
+
+            scroll.addView(body);
+            menuLayout.addView(scroll);
+
+            int type;
+            if (Build.VERSION.SDK_INT >= 26) {
+                type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                type = WindowManager.LayoutParams.TYPE_PHONE;
+            }
+
+            menuP = new WindowManager.LayoutParams(dp(280), LinearLayout.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
+            menuP.gravity = Gravity.CENTER;
+
+            wm.addView(menuLayout, menuP);
+            menuVisible = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao criar menu: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        statusText.setTextSize(12);
-        statusText.setPadding(dp(16), dp(8), dp(16), dp(4));
-        menuLayout.addView(statusText);
-
-        ScrollView scroll = new ScrollView(this);
-        LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(400));
-        scroll.setLayoutParams(scrollLp);
-
-        LinearLayout body = new LinearLayout(this);
-        body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(8), dp(8), dp(8), dp(16));
-
-        addCategory(body, "AIM");
-        addSeek(body, "AIMSPOT", 0, 3, 0);
-        addToggle(body, "AIM TIRO", 1);
-        addToggle(body, "AIM MIRA", 2);
-        addToggle(body, "AIM AGACHADO", 3);
-        addSeek(body, "Aim FOV", 4, 10, 0);
-        addSeek(body, "Aim puxada", 5, 10, 0);
-        addSeek(body, "Sensibilidade", 6, 3, 0);
-
-        addCategory(body, "ESP");
-        addToggle(body, "ESP FIRE", 7);
-        addToggle(body, "ESP BOT PLAYER", 8);
-        addToggle(body, "ESP DISTANCE", 9);
-        addToggle(body, "ESP NAME", 10);
-
-        addCategory(body, "COMBAT");
-        addSeek(body, "Chuva de balas", 11, 15, 0);
-        addSeek(body, "Speed 50X", 12, 5, 0);
-        addSeek(body, "Speed HACKER", 13, 5, 0);
-        addToggle(body, "TELEKIL", 14);
-        addToggle(body, "TELEKIL PRO", 15);
-        addToggle(body, "AIM TELEKIL", 16);
-
-        addCategory(body, "MISC");
-        addToggle(body, "GHOST HACKER", 17);
-        addToggle(body, "Fly Carro", 18);
-        addToggle(body, "Fly Player", 19);
-        addSeek(body, "Fly Speed", 20, 9, 0);
-        addToggle(body, "FAKE NAME", 21);
-        addToggle(body, "MODO NOITE", 22);
-        addToggle(body, "MEDKIT CORRENDO", 23);
-        addToggle(body, "ZE PEDRINHA", 24);
-        addToggle(body, "DESBANIR IMEI", 25);
-
-        scroll.addView(body);
-        menuLayout.addView(scroll);
-
-        int type;
-        if (Build.VERSION.SDK_INT >= 26) {
-            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            type = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-
-        menuP = new WindowManager.LayoutParams(dp(280), LinearLayout.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
-        menuP.gravity = Gravity.CENTER;
-
-        wm.addView(menuLayout, menuP);
-        menuVisible = true;
     }
 
     private void addCategory(LinearLayout parent, String name) {
@@ -412,7 +438,7 @@ public class FloatingModMenuService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        try { if (scanner != null) scanner.stop(); } catch (Exception e) {}
+        try { if (scanner != null) scanner.stopScanner(); } catch (Exception e) {}
         try { if (touchIcon != null) wm.removeView(touchIcon); } catch (Exception e) {}
         try { if (menuLayout != null) wm.removeView(menuLayout); } catch (Exception e) {}
     }
