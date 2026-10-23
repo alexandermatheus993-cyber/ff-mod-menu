@@ -53,7 +53,7 @@ public class SuService extends ISuService.Stub {
             String cmd = "dd if=/proc/" + pid + "/mem bs=1 skip=$((0x" + hexAddr + ")) count=" + size + " 2>/dev/null | xxd -p";
             String hex = execCommand(cmd);
             if (hex == null || hex.isEmpty() || hex.startsWith("ERROR")) return null;
-            hex = hex.replaceAll("\s+", "");
+            hex = hex.replaceAll(" \\r\\n", "");
             int len = hex.length() / 2;
             byte[] data = new byte[len];
             for (int i = 0; i < len; i++) {

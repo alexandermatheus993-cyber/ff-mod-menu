@@ -46,7 +46,7 @@ public class FloatingModService extends Service {
 
                 if (pid <= 0) {
                     // Method 2: try execCommand with ps directly
-                    String psResult = svc.execCommand("ps -A | grep freefireth | grep -v grep | head -1 | awk '{print \$2}'");
+                    String psResult = svc.execCommand("ps -A | grep freefireth | grep -v grep | head -1 | tr -s ' ' | cut -d' ' -f2");
                     Log.d(TAG, "ps direct result: '" + psResult + "'");
                     if (psResult != null && !psResult.isEmpty() && !psResult.startsWith("ERROR")) {
                         try { pid = Integer.parseInt(psResult.trim()); } catch (Exception ignored) {}
@@ -59,7 +59,7 @@ public class FloatingModService extends Service {
                     Log.d(TAG, "broad search: '" + broad + "'");
                     if (broad != null && !broad.isEmpty() && !broad.startsWith("ERROR")) {
                         for (String line : broad.split("\n")) {
-                            String[] parts = line.trim().split("\s+");
+                            String[] parts = line.trim().split(" +");
                             if (parts.length >= 2) {
                                 try {
                                     pid = Integer.parseInt(parts[1]);
