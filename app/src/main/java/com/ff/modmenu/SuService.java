@@ -2,7 +2,6 @@ package com.ff.modmenu;
 
 import android.util.Log;
 import java.io.*;
-import java.lang.reflect.Method;
 
 public class SuService extends ISuService.Stub {
     private static final String TAG = "FFModMenu";
@@ -10,10 +9,7 @@ public class SuService extends ISuService.Stub {
     @Override
     public String execCommand(String cmd) {
         try {
-            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
-            Method newProcess = shizukuClass.getDeclaredMethod("newProcess", String[].class, String.class, String.class);
-            newProcess.setAccessible(true);
-            Process process = (Process) newProcess.invoke(null, new String[]{"sh", "-c", cmd}, null, null);
+            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
             InputStream is = process.getInputStream();
             InputStream es = process.getErrorStream();
             StringBuilder sb = new StringBuilder();
@@ -33,10 +29,7 @@ public class SuService extends ISuService.Stub {
     @Override
     public int findPid(String packageName) {
         try {
-            // Use ps -A | grep instead of pidof (pidof doesn't work via Shizuku)
-            String cmd = "ps -A | grep " + packageName + " | grep -v grep | head -1 | awk '{print $2}'";
-            String result = execCommand(cmd);
-            Log.d(TAG, "findPid result: '" + result + "' for " + packageName);
+            String result = execCommand("ps -A | grep " + packageName + " | grep -v grep | head -1 | awk '{print $2}'");
             if (result != null && !result.isEmpty() && !result.startsWith("ERROR")) {
                 return Integer.parseInt(result.trim());
             }
@@ -53,7 +46,7 @@ public class SuService extends ISuService.Stub {
             String cmd = "dd if=/proc/" + pid + "/mem bs=1 skip=$((0x" + hexAddr + ")) count=" + size + " 2>/dev/null | xxd -p";
             String hex = execCommand(cmd);
             if (hex == null || hex.isEmpty() || hex.startsWith("ERROR")) return null;
-            hex = hex.replaceAll(" \\r\\n", "");
+            hex = hex.replaceAll("[\\r\\n\\s]", "");
             int len = hex.length() / 2;
             byte[] data = new byte[len];
             for (int i = 0; i < len; i++) {
@@ -70,11 +63,11 @@ public class SuService extends ISuService.Stub {
     public boolean writeMemory(int pid, long address, byte[] data) {
         try {
             String hexAddr = Long.toHexString(address);
-            String hexData = "";
-            for (byte b : data) hexData += String.format("%02x", b);
-            String cmd = "echo " + hexData + " | xxd -r -p | dd of=/proc/" + pid + "/mem bs=1 seek=$((0x" + hexAddr + ")) conv=notrunc 2>/dev/null";
+            StringBuilder sb = new StringBuilder();
+            for (byte b : data) sb.append(String.format("%02x", b));
+            String cmd = "printf '" + sb.toString() + "' | xxd -r -p | dd of=/proc/" + pid + "/mem bs=1 seek=$((0x" + hexAddr + ")) conv=notrunc 2>/dev/null";
             String result = execCommand(cmd);
-            return !result.startsWith("ERROR");
+            return result != null && !result.startsWith("ERROR");
         } catch (Exception e) {
             Log.e(TAG, "writeMemory error", e);
             return false;
@@ -82,14 +75,56 @@ public class SuService extends ISuService.Stub {
     }
 
     @Override
-    public String[] getMemoryRegions(int pid) {
+    public long findBaseAddress(int pid, String libName) {
         try {
-            String result = execCommand("cat /proc/" + pid + "/maps 2>/dev/null");
-            if (result == null || result.isEmpty()) return new String[0];
-            return result.split("\n");
+            String maps = execCommand("cat /proc/" + pid + "/maps");
+            if (maps == null || maps.isEmpty()) return -1;
+            for (String line : maps.split("\n")) {
+                if (line.contains(libName)) {
+                    String[] parts = line.split("-");
+                    if (parts.length >= 1) {
+                        return Long.parseLong(parts[0].trim(), 16);
+                    }
+                }
+            }
         } catch (Exception e) {
-            Log.e(TAG, "getMemoryRegions error", e);
-            return new String[0];
+            Log.e(TAG, "findBaseAddress error", e);
+        }
+        return -1;
+    }
+
+    @Override
+    public long[] scanPattern(int pid, long startAddr, long endAddr, String pattern) {
+        // TODO: implement pattern scan
+        return new long[0];
+    }
+
+    @Override
+    public boolean pokeMemory(int pid, long address, int value) {
+        try {
+            byte[] data = new byte[]{
+                (byte) (value & 0xFF),
+                (byte) ((value >> 8) & 0xFF),
+                (byte) ((value >> 16) & 0xFF),
+                (byte) ((value >> 24) & 0xFF)
+            };
+            return writeMemory(pid, address, data);
+        } catch (Exception e) {
+            Log.e(TAG, "pokeMemory error", e);
+            return false;
+        }
+    }
+
+    @Override
+    public int peekMemory(int pid, long address) {
+        try {
+            byte[] data = readMemory(pid, address, 4);
+            if (data == null || data.length < 4) return 0;
+            return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) |
+                   ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24);
+        } catch (Exception e) {
+            Log.e(TAG, "peekMemory error", e);
+            return 0;
         }
     }
 
