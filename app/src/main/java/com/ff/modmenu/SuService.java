@@ -1,95 +1,45 @@
 package com.ff.modmenu;
 
 import android.util.Log;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
-import rikka.shizuku.Shizuku;
 
 public class SuService extends ISuService.Stub {
-
     private static final String TAG = "FFModMenu";
-
-    private Process newProcess(String[] cmd) throws Exception {
-        Method m = Shizuku.class.getDeclaredMethod("newProcess", String[].class, String[].class, String.class);
-        m.setAccessible(true);
-        return (Process) m.invoke(null, (Object) cmd, null, null);
-    }
 
     @Override
     public String execCommand(String cmd) {
         try {
-            Log.d(TAG, "execCommand: " + cmd);
-            Process p = newProcess(new String[]{"sh"});
-            OutputStream os = p.getOutputStream();
-            InputStream is = p.getInputStream();
-            os.write((cmd + "\n").getBytes());
-            os.flush();
-            os.write("exit\n".getBytes());
-            os.flush();
-            os.close();
+            Class<?> shizukuClass = Class.forName("rikka.shizuku.Shizuku");
+            Method newProcess = shizukuClass.getDeclaredMethod("newProcess", String[].class, String.class, String.class);
+            newProcess.setAccessible(true);
+            Process process = (Process) newProcess.invoke(null, new String[]{"sh", "-c", cmd}, null, null);
+            InputStream is = process.getInputStream();
+            InputStream es = process.getErrorStream();
             StringBuilder sb = new StringBuilder();
-            byte[] buf = new byte[8192];
+            byte[] buf = new byte[4096];
             int n;
-            while ((n = is.read(buf)) != -1) {
-                sb.append(new String(buf, 0, n));
-            }
-            p.waitFor();
-            String result = sb.toString().trim();
-            Log.d(TAG, "execCommand result: [" + result + "]");
-            return result;
+            while ((n = is.read(buf)) != -1) sb.append(new String(buf, 0, n));
+            byte[] ebuf = new byte[4096];
+            while ((n = es.read(ebuf)) != -1) sb.append(new String(ebuf, 0, n));
+            process.waitFor();
+            return sb.toString().trim();
         } catch (Exception e) {
             Log.e(TAG, "execCommand error", e);
+            return "ERROR:" + e.getMessage();
         }
-        return "";
     }
 
     @Override
     public int findPid(String packageName) {
         try {
-            // Metodo 1: pidof
-            String result = execCommand("pidof " + packageName);
-            Log.d(TAG, "findPid pidof result: [" + result + "]");
-            if (result != null && !result.isEmpty()) {
-                String[] parts = result.split("\\s+");
-                for (String p : parts) {
-                    p = p.trim();
-                    if (!p.isEmpty()) {
-                        try {
-                            return Integer.parseInt(p);
-                        } catch (Exception ignored) {}
-                    }
-                }
+            // Use ps -A | grep instead of pidof (pidof doesn't work via Shizuku)
+            String cmd = "ps -A | grep " + packageName + " | grep -v grep | head -1 | awk '{print $2}'";
+            String result = execCommand(cmd);
+            Log.d(TAG, "findPid result: '" + result + "' for " + packageName);
+            if (result != null && !result.isEmpty() && !result.startsWith("ERROR")) {
+                return Integer.parseInt(result.trim());
             }
-
-            // Metodo 2: ps + grep
-            result = execCommand("ps -A 2>/dev/null | grep '" + packageName + "' | grep -v grep");
-            Log.d(TAG, "findPid ps result: [" + result + "]");
-            if (result != null && !result.isEmpty()) {
-                for (String line : result.split("\n")) {
-                    line = line.trim();
-                    if (line.contains(packageName)) {
-                        String[] parts = line.split("\\s+");
-                        if (parts.length >= 2) {
-                            try {
-                                return Integer.parseInt(parts[1]);
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                }
-            }
-
-            // Metodo 3: ls /proc e achar cmdline
-            result = execCommand("for f in /proc/[0-9]*/cmdline; do if grep -q '" + packageName + "' \"$f\" 2>/dev/null; then echo \"$(dirname $f)\"; break; fi; done");
-            Log.d(TAG, "findPid proc result: [" + result + "]");
-            if (result != null && !result.isEmpty()) {
-                String dir = result.trim().split("\n")[0].trim();
-                String pidStr = dir.replaceAll("[^0-9]", "");
-                if (!pidStr.isEmpty()) {
-                    return Integer.parseInt(pidStr);
-                }
-            }
-
         } catch (Exception e) {
             Log.e(TAG, "findPid error", e);
         }
@@ -97,72 +47,59 @@ public class SuService extends ISuService.Stub {
     }
 
     @Override
-    public boolean writeMemory(int pid, long address, byte[] data) {
+    public byte[] readMemory(int pid, long address, int size) {
         try {
-            if (data == null || data.length == 0 || pid <= 0) return false;
-            Process p = newProcess(new String[]{"sh"});
-            OutputStream os = p.getOutputStream();
-            InputStream is = p.getInputStream();
-            StringBuilder hex = new StringBuilder();
-            for (byte b : data) {
-                hex.append(String.format("\\x%02x", b & 0xFF));
+            String hexAddr = Long.toHexString(address);
+            String cmd = "dd if=/proc/" + pid + "/mem bs=1 skip=$((0x" + hexAddr + ")) count=" + size + " 2>/dev/null | xxd -p";
+            String hex = execCommand(cmd);
+            if (hex == null || hex.isEmpty() || hex.startsWith("ERROR")) return null;
+            hex = hex.replaceAll("\s+", "");
+            int len = hex.length() / 2;
+            byte[] data = new byte[len];
+            for (int i = 0; i < len; i++) {
+                data[i] = (byte) Integer.parseInt(hex.substring(i * 2, i * 2 + 2), 16);
             }
-            String cmd = String.format(
-                "printf '%s' | dd of=/proc/%d/mem bs=1 seek=%d count=%d 2>/dev/null; echo EXIT:$?\n",
-                hex.toString(), pid, address, data.length);
-            os.write(cmd.getBytes());
-            os.flush();
-            os.write("exit\n".getBytes());
-            os.flush();
-            os.close();
-            byte[] buf = new byte[256];
-            int n = is.read(buf);
-            p.waitFor();
-            if (n > 0) {
-                String result = new String(buf, 0, n);
-                Log.d(TAG, "writeMemory: " + result);
-                return result.contains("EXIT:0");
-            }
+            return data;
         } catch (Exception e) {
-            Log.e(TAG, "writeMemory error", e);
+            Log.e(TAG, "readMemory error", e);
+            return null;
         }
-        return false;
     }
 
     @Override
-    public byte[] readMemory(int pid, long address, int size) {
+    public boolean writeMemory(int pid, long address, byte[] data) {
         try {
-            if (size <= 0 || pid <= 0) return null;
-            Process p = newProcess(new String[]{"sh"});
-            OutputStream os = p.getOutputStream();
-            InputStream is = p.getInputStream();
-            String cmd = String.format(
-                "dd if=/proc/%d/mem bs=1 skip=%d count=%d 2>/dev/null\n",
-                pid, address, size);
-            os.write(cmd.getBytes());
-            os.flush();
-            os.write("exit\n".getBytes());
-            os.flush();
-            os.close();
-            byte[] result = new byte[size];
-            int totalRead = 0;
-            while (totalRead < size) {
-                int n = is.read(result, totalRead, size - totalRead);
-                if (n == -1) break;
-                totalRead += n;
-            }
-            p.waitFor();
-            Log.d(TAG, String.format("readMemory pid=%d addr=0x%X size=%d read=%d",
-                pid, address, size, totalRead));
-            if (totalRead == size) return result;
+            String hexAddr = Long.toHexString(address);
+            String hexData = "";
+            for (byte b : data) hexData += String.format("%02x", b);
+            String cmd = "echo " + hexData + " | xxd -r -p | dd of=/proc/" + pid + "/mem bs=1 seek=$((0x" + hexAddr + ")) conv=notrunc 2>/dev/null";
+            String result = execCommand(cmd);
+            return !result.startsWith("ERROR");
         } catch (Exception e) {
-            Log.e(TAG, "readMemory error", e);
+            Log.e(TAG, "writeMemory error", e);
+            return false;
         }
-        return null;
+    }
+
+    @Override
+    public String[] getMemoryRegions(int pid) {
+        try {
+            String result = execCommand("cat /proc/" + pid + "/maps 2>/dev/null");
+            if (result == null || result.isEmpty()) return new String[0];
+            return result.split("\n");
+        } catch (Exception e) {
+            Log.e(TAG, "getMemoryRegions error", e);
+            return new String[0];
+        }
+    }
+
+    @Override
+    public void destroy() {
+        Log.d(TAG, "SuService destroy");
     }
 
     @Override
     public void closeSu() {
-        Log.d(TAG, "closeSu called");
+        Log.d(TAG, "SuService closeSu");
     }
 }
