@@ -11,11 +11,18 @@ import android.widget.*;
 
 public class FloatingModService extends Service {
     private static final String TAG = "FFModMenu";
+    private static final String[] FF_PACKAGES = {
+        "com.dts.freefireth",
+        "com.dts.freefiremax",
+        "com.garena.game.kgtw",
+        "com.garena.game.ktw"
+    };
     private WindowManager windowManager;
     private View menuButton;
     private View menuPanel;
     private boolean menuOpen = false;
     private int targetPid = -1;
+    private String activePackage = null;
     private TextView pidStatus;
 
     @Override
@@ -41,21 +48,33 @@ public class FloatingModService extends Service {
             return;
         }
         pidStatus.post(() -> {
-            pidStatus.setText("Procurando...");
+            pidStatus.setText("Procurando FF...");
             pidStatus.setTextColor(0xFFFFD700);
         });
         new Thread(() -> {
             try {
                 String shell = svc.execCommand("echo OK");
-                int pid = svc.findPid("com.dts.freefireth");
-                Log.d(TAG, "shell=" + shell + " pid=" + pid);
+                int foundPid = -1;
+                String foundPkg = null;
+                for (String pkg : FF_PACKAGES) {
+                    int p = svc.findPid(pkg);
+                    if (p > 0) {
+                        foundPid = p;
+                        foundPkg = pkg;
+                        break;
+                    }
+                }
+                final int pid = foundPid;
+                final String pkg = foundPkg;
+                final String shellResult = shell;
                 targetPid = pid;
+                activePackage = pkg;
                 pidStatus.post(() -> {
                     if (pid > 0) {
-                        pidStatus.setText("PID: " + pid + " OK");
+                        pidStatus.setText(pkg + " PID:" + pid);
                         pidStatus.setTextColor(0xFF00FF88);
                     } else {
-                        pidStatus.setText("FF NAO ABERTO | " + shell);
+                        pidStatus.setText("FF NAO ABERTO | shell:" + shellResult);
                         pidStatus.setTextColor(0xFFFF4444);
                     }
                 });
@@ -67,6 +86,57 @@ public class FloatingModService extends Service {
                 });
             }
         }).start();
+    }
+
+    private void debugFindFF() {
+        ServiceHolder.requestBind();
+        ServiceHolder.waitForBind(5000);
+        final ISuService svc = ServiceHolder.get();
+        if (svc == null) {
+            Toast.makeText(this, "SuService OFF! Abra pelo app primeiro.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(this, "Procurando pacotes FF...", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            try {
+                String result = svc.execCommand("pm list packages 2>/dev/null | grep -iE 'free|fire|garena|dts' || echo NENHUM");
+                Log.d(TAG, "DEBUG pm list: " + result);
+                String psResult = svc.execCommand("ps -A 2>/dev/null | grep -iE 'free|fire|garena|dts' || echo NENHUM_PROCESSO");
+                Log.d(TAG, "DEBUG ps: " + psResult);
+
+                // Also try each known package
+                StringBuilder sb = new StringBuilder();
+                for (String pkg : FF_PACKAGES) {
+                    int p = svc.findPid(pkg);
+                    sb.append(pkg).append(" = ").append(p).append("\n");
+                }
+                final String debugInfo = result.trim() + "\n---\n" + psResult.trim() + "\n---\n" + sb.toString();
+                pidStatus.post(() -> {
+                    pidStatus.setText(debugInfo.length() > 80 ? debugInfo.substring(0, 80) : debugInfo);
+                    pidStatus.setTextColor(0xFFFFD700);
+                });
+                // Show full result as toast on main thread
+                pidStatus.post(() -> {
+                    Toast.makeText(FloatingModService.this, debugInfo, Toast.LENGTH_LONG).show();
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "debug error", e);
+                pidStatus.post(() -> Toast.makeText(FloatingModService.this, "ERRO: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    private void launchFreeFire() {
+        for (String pkg : FF_PACKAGES) {
+            Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launch);
+                Toast.makeText(this, "Abrindo " + pkg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+        Toast.makeText(this, "Free Fire NAO ENCONTRADO!", Toast.LENGTH_LONG).show();
     }
 
     private void createFloatingButton() {
@@ -179,21 +249,24 @@ public class FloatingModService extends Service {
         addSwitch(panel, "Antena Hack", false);
         addSwitch(panel, "ESP Line", false);
 
+        LinearLayout btnRow = new LinearLayout(this);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setPadding(0, 10, 0, 0);
+
         Button btnLaunch = new Button(this);
-        btnLaunch.setText("ABRIR FREE FIRE");
-        btnLaunch.setOnClickListener(v -> {
-            Intent launch = getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
-            if (launch != null) {
-                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(launch);
-            } else {
-                Toast.makeText(this, "Free Fire nao instalado!", Toast.LENGTH_SHORT).show();
-            }
-        });
-        panel.addView(btnLaunch);
+        btnLaunch.setText("ABRIR FF");
+        btnLaunch.setOnClickListener(v -> launchFreeFire());
+        btnRow.addView(btnLaunch);
+
+        Button btnDebug = new Button(this);
+        btnDebug.setText("DEBUG FF");
+        btnDebug.setOnClickListener(v -> debugFindFF());
+        btnRow.addView(btnDebug);
+
+        panel.addView(btnRow);
 
         Button btnClose = new Button(this);
-        btnClose.setText("FECHAR");
+        btnClose.setText("FECHAR MENU");
         btnClose.setOnClickListener(v -> toggleMenu());
         panel.addView(btnClose);
 
