@@ -2,25 +2,23 @@ package com.ff.modmenu.service;
 
 import android.os.IBinder;
 import android.util.Log;
-
 import com.ff.modmenu.SuService;
 
 /**
- * Classe registrada no AndroidManifest para o Shizuku.
- * O Shizuku inicia esse processo e retorna o binder do SuService.
+ * Shizuku inicia essa classe num processo separado
+ * e chama onBind() via reflexão pra pegar o binder.
  */
-public class UserService extends rikka.shizuku.UserService.UserServiceStub {
+public class UserService {
     private static final String TAG = "FFModMenu";
-    private SuService suService;
+    private final IBinder binder;
 
     public UserService() {
-        suService = new SuService();
-        Log.d(TAG, "UserService created");
+        binder = new SuService();
+        Log.d(TAG, "UserService created, SuService binder ready");
     }
 
-    @Override
     public IBinder onBind() {
-        Log.d(TAG, "UserService onBind - returning SuService binder");
-        return suService.asBinder();
+        Log.d(TAG, "UserService onBind called");
+        return binder;
     }
 }
