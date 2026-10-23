@@ -19,6 +19,11 @@ public class ServiceHolder {
         }
     }
 
+    public static boolean requestBind() {
+        init();
+        return bound;
+    }
+
     public static void waitForBind(int timeoutMs) {
         init();
     }
