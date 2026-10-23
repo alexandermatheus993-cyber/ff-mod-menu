@@ -20,7 +20,14 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.*;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.SeekBar;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class FloatingModMenuService extends Service {
     private WindowManager wm;
@@ -34,7 +41,9 @@ public class FloatingModMenuService extends Service {
     private TextView statusText;
 
     @Override
-    public IBinder onBind(Intent i) { return null; }
+    public IBinder onBind(Intent i) {
+        return null;
+    }
 
     @Override
     public void onCreate() {
@@ -42,7 +51,6 @@ public class FloatingModMenuService extends Service {
         h = new Handler(Looper.getMainLooper());
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         hack = new GameHack();
-
         startForegroundCompat();
         initShizuku();
         startScanner();
@@ -53,13 +61,68 @@ public class FloatingModMenuService extends Service {
         try {
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel ch = new NotificationChannel(
-                        ".post(() -> {
-                    Toast.makeText(this, "Free Fire detectado! PID: " + pid, Toast.LENGTH_SHORT).show();
-                    if (statusText != null) {
-                        statusText.setText("Status: CONECTADO (PID " + pid + ")");
-                        statusText.setTextColor(Color.GREEN);
-                    }
- = new ImageView(this);
+                    "ff_mod", "FF Mod Menu", NotificationManager.IMPORTANCE_LOW);
+                NotificationManager nm = getSystemService(NotificationManager.class);
+                if (nm != null) nm.createNotificationChannel(ch);
+                Notification n = new Notification.Builder(this, "ff_mod")
+                    .setContentTitle("FF Mod Menu")
+                    .setContentText("Mod ativo")
+                    .setSmallIcon(android.R.drawable.ic_menu_info_details)
+                    .setOngoing(true)
+                    .build();
+                startForeground(1, n);
+            } else {
+                Notification n = new Notification.Builder(this)
+                    .setContentTitle("FF Mod Menu")
+                    .setContentText("Mod ativo")
+                    .setSmallIcon(android.R.drawable.ic_menu_info_details)
+                    .build();
+                startForeground(1, n);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initShizuku() {
+        try {
+            ServiceHolder.init();
+            hack.setService(ServiceHolder.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startScanner() {
+        try {
+            scanner = new GameScanner(new GameScanner.PidCallback() {
+                public void onPidFound(int pid) {
+                    hack.setPid(pid);
+                    h.post(new Runnable() {
+                        public void run() {
+                            Toast.makeText(FloatingModMenuService.this,
+                                "Free Fire detectado PID " + pid, Toast.LENGTH_SHORT).show();
+                            if (statusText != null) {
+                                statusText.setText("Status CONECTADO PID " + pid);
+                                statusText.setTextColor(Color.GREEN);
+                            }
+                        }
+                    });
+                }
+            });
+            scanner.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int dp(int v) {
+        return (int) TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
+    }
+
+    private void createIcon() {
+        touchIcon = new ImageView(this);
         Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bmp);
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -67,7 +130,20 @@ public class FloatingModMenuService extends Service {
         c.drawCircle(32, 32, 30, p);
         p.setColor(Color.WHITE);
         p.setTextSize(28);
-ENT);
+        p.setTypeface(Typeface.DEFAULT_BOLD);
+        p.setTextAlign(Paint.Align.CENTER);
+        c.drawText("M", 32, 42, p);
+        touchIcon.setImageBitmap(bmp);
+
+        int type;
+        if (Build.VERSION.SDK_INT >= 26) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+
+        iconP = new WindowManager.LayoutParams(dp(50), dp(50), type,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         iconP.gravity = Gravity.TOP | Gravity.START;
         iconP.x = 10;
         iconP.y = 200;
@@ -80,13 +156,15 @@ ENT);
             public boolean onTouch(View v, MotionEvent e) {
                 switch (e.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        ix = iconP.x; iy = iconP.y;
-                        sx = e.getRawX(); sy = e.getRawY();
+                        ix = iconP.x;
+                        iy = iconP.y;
+                        sx = e.getRawX();
+                        sy = e.getRawY();
                         moved = false;
                         return false;
                     case MotionEvent.ACTION_MOVE:
-                        iconP.x = ix + (int) (e.getRawX() - sx);
-                        iconP.y = iy + (int) (e.getRawY() - sy);
+                        iconP.x = ix + (int)(e.getRawX() - sx);
+                        iconP.y = iy + (int)(e.getRawY() - sy);
                         try { wm.updateViewLayout(touchIcon, iconP); } catch (Exception ex) {}
                         moved = true;
                         return true;
@@ -133,8 +211,8 @@ ENT);
         title.setTextColor(Color.WHITE);
         title.setTextSize(18);
         title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setLayoutParams(new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        title.setLayoutParams(titleLp);
         header.addView(title);
 
         TextView closeBtn = new TextView(this);
@@ -142,17 +220,18 @@ ENT);
         closeBtn.setTextColor(Color.WHITE);
         closeBtn.setTextSize(20);
         closeBtn.setPadding(dp(12), 0, 0, 0);
-        closeBtn.setOnClickListener(v -> hideMenu());
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) { hideMenu(); }
+        });
         header.addView(closeBtn);
-
         menuLayout.addView(header);
 
         statusText = new TextView(this);
         if (hack.isReady()) {
-            statusText.setText("Status: CONECTADO (PID " + hack.getPid() + ")");
+            statusText.setText("Status CONECTADO PID " + hack.getPid());
             statusText.setTextColor(Color.GREEN);
         } else {
-            statusText.setText("Status: Esperando Free Fire...");
+            statusText.setText("Status Esperando Free Fire");
             statusText.setTextColor(Color.YELLOW);
         }
         statusText.setTextSize(12);
@@ -160,75 +239,75 @@ ENT);
         menuLayout.addView(statusText);
 
         ScrollView scroll = new ScrollView(this);
-        scroll.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(400)));
+        LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(400));
+        scroll.setLayoutParams(scrollLp);
 
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(8), dp(8), dp(8), dp(16));
 
-        cat(body, "AIM");
-        seek(body, "AIMSPOT", 0, 3, 0);
-        tog(body, "AIM TIRO", 1);
-        tog(body, "AIM MIRA", 2);
-        tog(body, "AIM AGACHADO", 3);
-        seek(body, "Aim FOV", 4, 10, 0);
-        seek(body, "Aim puxada", 5, 10, 0);
-        seek(body, "Sensibilidade", 6, 3, 0);
+        addCategory(body, "AIM");
+        addSeek(body, "AIMSPOT", 0, 3, 0);
+        addToggle(body, "AIM TIRO", 1);
+        addToggle(body, "AIM MIRA", 2);
+        addToggle(body, "AIM AGACHADO", 3);
+        addSeek(body, "Aim FOV", 4, 10, 0);
+        addSeek(body, "Aim puxada", 5, 10, 0);
+        addSeek(body, "Sensibilidade", 6, 3, 0);
 
-        cat(body, "ESP");
-        tog(body, "ESP FIRE", 7);
-        tog(body, "ESP BOT/PLAYER", 8);
-        tog(body, "ESP DISTANCE", 9);
-        tog(body, "ESP NAME", 10);
+        addCategory(body, "ESP");
+        addToggle(body, "ESP FIRE", 7);
+        addToggle(body, "ESP BOT PLAYER", 8);
+        addToggle(body, "ESP DISTANCE", 9);
+        addToggle(body, "ESP NAME", 10);
 
-        cat(body, "COMBAT");
-        seek(body, "Chuva de balas", 11, 15, 0);
-        seek(body, "Speed 50X", 12, 5, 0);
-        seek(body, "Speed HACKER", 13, 5, 0);
-        tog(body, "TELEKIL", 14);
-        tog(body, "TELEKIL PRO", 15);
-        tog(body, "AIM TELEKIL", 16);
+        addCategory(body, "COMBAT");
+        addSeek(body, "Chuva de balas", 11, 15, 0);
+        addSeek(body, "Speed 50X", 12, 5, 0);
+        addSeek(body, "Speed HACKER", 13, 5, 0);
+        addToggle(body, "TELEKIL", 14);
+        addToggle(body, "TELEKIL PRO", 15);
+        addToggle(body, "AIM TELEKIL", 16);
 
-        cat(body, "MISC");
-        tog(body, "GHOST HACKER", 17);
-        tog(body, "Fly Carro", 18);
-        tog(body, "Fly Player", 19);
-        seek(body, "Fly Speed", 20, 9, 0);
-        tog(body, "FAKE NAME", 21);
-        tog(body, "MODO NOITE", 22);
-        tog(body, "MEDKIT CORRENDO", 23);
-        tog(body, "ZE PEDRINHA", 24);
-        tog(body, "DESBANIR IMEI", 25);
+        addCategory(body, "MISC");
+        addToggle(body, "GHOST HACKER", 17);
+        addToggle(body, "Fly Carro", 18);
+        addToggle(body, "Fly Player", 19);
+        addSeek(body, "Fly Speed", 20, 9, 0);
+        addToggle(body, "FAKE NAME", 21);
+        addToggle(body, "MODO NOITE", 22);
+        addToggle(body, "MEDKIT CORRENDO", 23);
+        addToggle(body, "ZE PEDRINHA", 24);
+        addToggle(body, "DESBANIR IMEI", 25);
 
         scroll.addView(body);
         menuLayout.addView(scroll);
 
-        int type = Build.VERSION.SDK_INT >= 26
-                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                : WindowManager.LayoutParams.TYPE_PHONE;
+        int type;
+        if (Build.VERSION.SDK_INT >= 26) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
 
-        menuP = new WindowManager.LayoutParams(
-                dp(280), WindowManager.LayoutParams.WRAP_CONTENT, type,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT);
+        menuP = new WindowManager.LayoutParams(dp(280), LinearLayout.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT);
         menuP.gravity = Gravity.CENTER;
 
         wm.addView(menuLayout, menuP);
         menuVisible = true;
     }
 
-    private void cat(LinearLayout p, String name) {
+    private void addCategory(LinearLayout parent, String name) {
         TextView t = new TextView(this);
         t.setText("  " + name);
         t.setTextColor(Color.parseColor("#FF4081"));
         t.setTextSize(14);
         t.setTypeface(Typeface.DEFAULT_BOLD);
         t.setPadding(0, dp(12), 0, dp(4));
-        p.addView(t);
+        parent.addView(t);
     }
 
-    private void tog(LinearLayout p, String name, int id) {
+    private void addToggle(LinearLayout parent, final String name, final int id) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(dp(8), dp(6), dp(8), dp(6));
@@ -238,19 +317,22 @@ ENT);
         lbl.setText(name);
         lbl.setTextColor(Color.WHITE);
         lbl.setTextSize(13);
-        lbl.setLayoutParams(new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        LinearLayout.LayoutParams lblLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lbl.setLayoutParams(lblLp);
         row.addView(lbl);
 
         Switch sw = new Switch(this);
         sw.setChecked(false);
-        sw.setOnCheckedChangeListener((b, on) -> applyToggle(id, on));
+        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton b, boolean on) {
+                applyToggle(id, on);
+            }
+        });
         row.addView(sw);
-
-        p.addView(row);
+        parent.addView(row);
     }
 
-    private void seek(LinearLayout p, String name, int id, int max, int def) {
+    private void addSeek(LinearLayout parent, final String name, final int id, int max, int def) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(dp(8), dp(6), dp(8), dp(6));
@@ -262,16 +344,15 @@ ENT);
         lbl.setText(name);
         lbl.setTextColor(Color.WHITE);
         lbl.setTextSize(13);
-        lbl.setLayoutParams(new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        LinearLayout.LayoutParams lblLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lbl.setLayoutParams(lblLp);
         top.addView(lbl);
 
-        TextView val = new TextView(this);
+        final TextView val = new TextView(this);
         val.setText(String.valueOf(def));
         val.setTextColor(Color.YELLOW);
         val.setTextSize(13);
         top.addView(val);
-
         row.addView(top);
 
         SeekBar sb = new SeekBar(this);
@@ -286,13 +367,12 @@ ENT);
             public void onStopTrackingTouch(SeekBar s) {}
         });
         row.addView(sb);
-
-        p.addView(row);
+        parent.addView(row);
     }
 
     private void applyToggle(int id, boolean on) {
         if (!hack.isReady()) {
-            Toast.makeText(this, "Esperando Free Fire...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Esperando Free Fire", Toast.LENGTH_SHORT).show();
             return;
         }
         switch (id) {
@@ -314,7 +394,7 @@ ENT);
 
     private void applySeek(int id, int val) {
         if (!hack.isReady()) {
-            Toast.makeText(this, "Esperando Free Fire...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Esperando Free Fire", Toast.LENGTH_SHORT).show();
             return;
         }
         switch (id) {
