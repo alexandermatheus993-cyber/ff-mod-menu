@@ -21,8 +21,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.*;
-import android.content.Context;
-import android.content.pm.ServiceInfo;
 
 public class FloatingModMenuService extends Service {
     private WindowManager wm;
@@ -42,85 +40,26 @@ public class FloatingModMenuService extends Service {
     public void onCreate() {
         super.onCreate();
         h = new Handler(Looper.getMainLooper());
+        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        hack = new GameHack();
 
-        // CRITICAL: startForeground ANTES de qualquer coisa
+        startForegroundCompat();
+        initShizuku();
+        startScanner();
+        createIcon();
+    }
+
+    private void startForegroundCompat() {
         try {
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationChannel ch = new NotificationChannel(
-                    "ff_mod", "FF Mod Menu", NotificationManager.IMPORTANCE_LOW);
-                ch.setDescription("Mod menu background service");
-                NotificationManager nm = getSystemService(NotificationManager.class);
-                if (nm != null) nm.createNotificationChannel(ch);
-
-                Notification n = new Notification.Builder(this, "ff_mod")
-                    .setContentTitle("FF Mod Menu")
-                    .setContentText("Mod ativo")
-                    .setSmallIcon(android.R.drawable.ic_menu_info_details)
-                    .setOngoing(true)
-                    .build();
-
-                startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-            } else {
-                // API < 26
-                Notification n = new Notification.Builder(this)
-                    .setContentTitle("FF Mod Menu")
-                    .setContentText("Mod ativo")
-                    .setSmallIcon(android.R.drawable.ic_menu_info_details)
-                    .build();
-                startForeground(1, n);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // Tenta sem tipo de foreground
-            try {
-                Notification n = new Notification.Builder(this)
-                    .setContentTitle("FF Mod Menu")
-                    .setSmallIcon(android.R.drawable.ic_menu_info_details)
-                    .build();
-                startForeground(1, n);
-            } catch (Exception e2) {
-                e2.printStackTrace();
-            }
-        }
-
-        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        hack = new GameHack();
-
-        // Shizuku - protegido contra crash
-        try {
-            ServiceHolder.init();
-            hack.setService(ServiceHolder.get());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Scanner - protegido contra crash
-        try {
-            scanner = new GameScanner(pid -> {
-                hack.setPid(pid);
-                h.post(() -> {
+                        ".post(() -> {
                     Toast.makeText(this, "Free Fire detectado! PID: " + pid, Toast.LENGTH_SHORT).show();
                     if (statusText != null) {
                         statusText.setText("Status: CONECTADO (PID " + pid + ")");
                         statusText.setTextColor(Color.GREEN);
                     }
-                });
-            });
-            scanner.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        createIcon();
-    }
-
-    private int dp(int v) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
-    }
-
-    private void createIcon() {
-        touchIcon = new ImageView(this);
+ = new ImageView(this);
         Bitmap bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bmp);
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -128,22 +67,7 @@ public class FloatingModMenuService extends Service {
         c.drawCircle(32, 32, 30, p);
         p.setColor(Color.WHITE);
         p.setTextSize(28);
-        p.setTypeface(Typeface.DEFAULT_BOLD);
-        p.setTextAlign(Paint.Align.CENTER);
-        c.drawText("M", 32, 42, p);
-        touchIcon.setImageBitmap(bmp);
-
-        int overlayType;
-        if (Build.VERSION.SDK_INT >= 26) {
-            overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            overlayType = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-
-        iconP = new WindowManager.LayoutParams(dp(50), dp(50),
-            overlayType,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT);
+ENT);
         iconP.gravity = Gravity.TOP | Gravity.START;
         iconP.x = 10;
         iconP.y = 200;
@@ -161,8 +85,8 @@ public class FloatingModMenuService extends Service {
                         moved = false;
                         return false;
                     case MotionEvent.ACTION_MOVE:
-                        iconP.x = ix + (int)(e.getRawX() - sx);
-                        iconP.y = iy + (int)(e.getRawY() - sy);
+                        iconP.x = ix + (int) (e.getRawX() - sx);
+                        iconP.y = iy + (int) (e.getRawY() - sy);
                         try { wm.updateViewLayout(touchIcon, iconP); } catch (Exception ex) {}
                         moved = true;
                         return true;
@@ -198,7 +122,6 @@ public class FloatingModMenuService extends Service {
         menuLayout.setOrientation(LinearLayout.VERTICAL);
         menuLayout.setBackgroundColor(Color.parseColor("#DD1A1A2E"));
 
-        // Header
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setBackgroundColor(Color.parseColor("#FF4081"));
@@ -210,22 +133,40 @@ public class FloatingModMenuService extends Service {
         title.setTextColor(Color.WHITE);
         title.setTextSize(18);
         title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        title.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         header.addView(title);
 
         TextView closeBtn = new TextView(this);
-        closeBtn.setText("6), dp(4));
+        closeBtn.setText("X");
+        closeBtn.setTextColor(Color.WHITE);
+        closeBtn.setTextSize(20);
+        closeBtn.setPadding(dp(12), 0, 0, 0);
+        closeBtn.setOnClickListener(v -> hideMenu());
+        header.addView(closeBtn);
+
+        menuLayout.addView(header);
+
+        statusText = new TextView(this);
+        if (hack.isReady()) {
+            statusText.setText("Status: CONECTADO (PID " + hack.getPid() + ")");
+            statusText.setTextColor(Color.GREEN);
+        } else {
+            statusText.setText("Status: Esperando Free Fire...");
+            statusText.setTextColor(Color.YELLOW);
+        }
+        statusText.setTextSize(12);
+        statusText.setPadding(dp(16), dp(8), dp(16), dp(4));
         menuLayout.addView(statusText);
 
-        // Scroll
         ScrollView scroll = new ScrollView(this);
-        scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(400)));
+        scroll.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(400)));
 
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(8), dp(8), dp(8), dp(16));
 
-        // AIM
         cat(body, "AIM");
         seek(body, "AIMSPOT", 0, 3, 0);
         tog(body, "AIM TIRO", 1);
@@ -235,31 +176,42 @@ public class FloatingModMenuService extends Service {
         seek(body, "Aim puxada", 5, 10, 0);
         seek(body, "Sensibilidade", 6, 3, 0);
 
-        // ESP
         cat(body, "ESP");
         tog(body, "ESP FIRE", 7);
         tog(body, "ESP BOT/PLAYER", 8);
         tog(body, "ESP DISTANCE", 9);
         tog(body, "ESP NAME", 10);
 
-        // COMBAT
         cat(body, "COMBAT");
         seek(body, "Chuva de balas", 11, 15, 0);
         seek(body, "Speed 50X", 12, 5, 0);
         seek(body, "Speed HACKER", 13, 5, 0);
         tog(body, "TELEKIL", 14);
         tog(body, "TELEKIL PRO", 15);
-        tog(body, "AIM TELEKIL", 1.addView(body);
+        tog(body, "AIM TELEKIL", 16);
+
+        cat(body, "MISC");
+        tog(body, "GHOST HACKER", 17);
+        tog(body, "Fly Carro", 18);
+        tog(body, "Fly Player", 19);
+        seek(body, "Fly Speed", 20, 9, 0);
+        tog(body, "FAKE NAME", 21);
+        tog(body, "MODO NOITE", 22);
+        tog(body, "MEDKIT CORRENDO", 23);
+        tog(body, "ZE PEDRINHA", 24);
+        tog(body, "DESBANIR IMEI", 25);
+
+        scroll.addView(body);
         menuLayout.addView(scroll);
 
-        int overlayType = Build.VERSION.SDK_INT >= 26 ?
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
-            WindowManager.LayoutParams.TYPE_PHONE;
+        int type = Build.VERSION.SDK_INT >= 26
+                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                : WindowManager.LayoutParams.TYPE_PHONE;
 
-        menuP = new WindowManager.LayoutParams(dp(280), WindowManager.LayoutParams.WRAP_CONTENT,
-            overlayType,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT);
+        menuP = new WindowManager.LayoutParams(
+                dp(280), WindowManager.LayoutParams.WRAP_CONTENT, type,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT);
         menuP.gravity = Gravity.CENTER;
 
         wm.addView(menuLayout, menuP);
@@ -286,7 +238,8 @@ public class FloatingModMenuService extends Service {
         lbl.setText(name);
         lbl.setTextColor(Color.WHITE);
         lbl.setTextSize(13);
-        lbl.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        lbl.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(lbl);
 
         Switch sw = new Switch(this);
@@ -309,7 +262,8 @@ public class FloatingModMenuService extends Service {
         lbl.setText(name);
         lbl.setTextColor(Color.WHITE);
         lbl.setTextSize(13);
-        lbl.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        lbl.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         top.addView(lbl);
 
         TextView val = new TextView(this);
