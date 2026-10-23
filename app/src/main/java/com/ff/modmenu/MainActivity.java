@@ -14,7 +14,9 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(null);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -23,15 +25,16 @@ public class MainActivity extends Activity {
                 return;
             }
         }
-        startModWithDelay();
+
+        launchService();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == OVERLAY_REQUEST) {
-            if (Settings.canDrawOverlays(this)) {
-                startModWithDelay();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
+                launchService();
             } else {
                 Toast.makeText(this, "Permissao de overlay necessaria!", Toast.LENGTH_LONG).show();
                 finish();
@@ -39,10 +42,20 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void startModWithDelay() {
+    private void launchService() {
         Toast.makeText(this, "FF Mod Menu carregando...", Toast.LENGTH_SHORT).show();
         new Handler().postDelayed(() -> {
-            startService(new Intent(this, FloatingModMenuService.class));
+            try {
+                Intent svc = new Intent(this, FloatingModMenuService.class);
+                if (Build.VERSION.SDK_INT >= 26) {
+                    startForegroundService(svc);
+                } else {
+                    startService(svc);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Erro ao iniciar service: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
             finish();
         }, 3000);
     }

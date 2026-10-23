@@ -1,52 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="32dp"
-    android:background="#FF0D0D0D">
-
+    android:background="#000000">
     <TextView
-        android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="FF MOD MENU"
-        android:textColor="#FF00FF88"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/status_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="AGUARDANDO..."
-        android:textColor="#FFFFD700"
-        android:textSize="16sp"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/btn_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="ATIVAR MOD"
-        android:textSize="16sp"
-        android:layout_marginBottom="12dp" />
-
-    <Button
-        android:id="@+id/btn_scanner"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="MEMORY SCANNER"
-        android:textSize="16sp"
-        android:layout_marginBottom="12dp" />
-
-    <Button
-        android:id="@+id/btn_ff"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="ABRIR FREE FIRE"
-        android:textSize="16sp" />
-
-</LinearLayout>
+        android:layout_gravity="center"
+        android:text="FF Mod Menu\nCarregando..."
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:gravity="center" />
+</FrameLayout>
