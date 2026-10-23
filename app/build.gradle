@@ -8,7 +8,6 @@ android {
 
     sourceSets {
         main {
-            aidl.srcDirs = []
         }
     }
 
