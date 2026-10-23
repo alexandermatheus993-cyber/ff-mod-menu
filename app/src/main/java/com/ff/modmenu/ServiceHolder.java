@@ -21,7 +21,7 @@ public class ServiceHolder {
                 bound = true;
                 waitingBind = false;
                 lock.notifyAll();
-                Log.d(TAG, "SuService conectado!");
+                Log.d(TAG, "SuService conectado via Shizuku!");
             }
         }
         @Override
@@ -29,7 +29,7 @@ public class ServiceHolder {
             synchronized (lock) {
                 suService = null;
                 bound = false;
-                Log.d(TAG, "SuService desconnectado!");
+                Log.d(TAG, "SuService desconectado!");
             }
         }
     };
@@ -38,15 +38,17 @@ public class ServiceHolder {
         if (bound && suService != null) return;
         if (waitingBind) return;
         try {
+            // Aponta pro UserService registrado no manifest
             Shizuku.UserServiceArgs args = new Shizuku.UserServiceArgs(
-                    new ComponentName("com.ff.modmenu", SuService.class.getName()))
+                    new ComponentName("com.ff.modmenu",
+                            "com.ff.modmenu.service.UserService"))
                     .daemon(false)
                     .processNameSuffix("su")
                     .debuggable(false)
                     .version(1);
             waitingBind = true;
             Shizuku.bindUserService(args, connection);
-            Log.d(TAG, "bindUserService solicitado");
+            Log.d(TAG, "bindUserService solicitado para UserService");
         } catch (Exception e) {
             Log.e(TAG, "bindUserService falhou", e);
             waitingBind = false;
