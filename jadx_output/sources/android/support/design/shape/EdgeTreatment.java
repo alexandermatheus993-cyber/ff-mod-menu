@@ -1,8 +1,0 @@
-package android.support.design.shape;
-
-/* JADX INFO: loaded from: classes54.dex */
-public class EdgeTreatment {
-    public void getEdgePath(float f, float f2, ShapePath shapePath) {
-        shapePath.lineTo(f, 0.0f);
-    }
-}
