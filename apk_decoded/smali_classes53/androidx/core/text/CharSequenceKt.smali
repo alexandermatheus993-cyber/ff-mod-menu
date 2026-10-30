@@ -1,0 +1,96 @@
+.class public final Landroidx/core/text/CharSequenceKt;
+.super Ljava/lang/Object;
+.source "CharSequence.kt"
+
+
+# annotations
+.annotation runtime Lkotlin/Metadata;
+    bv = {
+        0x1,
+        0x0,
+        0x3
+    }
+    d1 = {
+        "\u0000\u0012\n\u0000\n\u0002\u0010\u000b\n\u0002\u0010\r\n\u0000\n\u0002\u0010\u0008\n\u0000\u001a\r\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\u0086\u0008\u001a\r\u0010\u0003\u001a\u00020\u0004*\u00020\u0002H\u0086\u0008\u00a8\u0006\u0005"
+    }
+    d2 = {
+        "isDigitsOnly",
+        "",
+        "",
+        "trimmedLength",
+        "",
+        "core-ktx_release"
+    }
+    k = 0x2
+    mv = {
+        0x1,
+        0x4,
+        0x1
+    }
+.end annotation
+
+
+# direct methods
+.method public static final isDigitsOnly(Ljava/lang/CharSequence;)Z
+    .locals 4
+    .param p0    # Ljava/lang/CharSequence;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+
+    .prologue
+    move-object v0, p0
+
+    const/4 v2, 0x0
+
+    move v1, v2
+
+    move-object v2, v0
+
+    const-string v3, "$this$isDigitsOnly"
+
+    invoke-static {v2, v3}, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object;Ljava/lang/String;)V
+
+    .line 28
+    move-object v2, v0
+
+    invoke-static {v2}, Landroid/text/TextUtils;->isDigitsOnly(Ljava/lang/CharSequence;)Z
+
+    move-result v2
+
+    move v0, v2
+
+    return v0
+.end method
+
+.method public static final trimmedLength(Ljava/lang/CharSequence;)I
+    .locals 4
+    .param p0    # Ljava/lang/CharSequence;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+
+    .prologue
+    move-object v0, p0
+
+    const/4 v2, 0x0
+
+    move v1, v2
+
+    move-object v2, v0
+
+    const-string v3, "$this$trimmedLength"
+
+    invoke-static {v2, v3}, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object;Ljava/lang/String;)V
+
+    .line 36
+    move-object v2, v0
+
+    invoke-static {v2}, Landroid/text/TextUtils;->getTrimmedLength(Ljava/lang/CharSequence;)I
+
+    move-result v2
+
+    move v0, v2
+
+    return v0
+.end method

@@ -1,0 +1,44 @@
+.class public abstract Landroidx/work/Operation$State;
+.super Ljava/lang/Object;
+.source "Operation.java"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Landroidx/work/Operation;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x409
+    name = "State"
+.end annotation
+
+.annotation system Ldalvik/annotation/MemberClasses;
+    value = {
+        Landroidx/work/Operation$State$FAILURE;,
+        Landroidx/work/Operation$State$IN_PROGRESS;,
+        Landroidx/work/Operation$State$SUCCESS;
+    }
+.end annotation
+
+
+# direct methods
+.method constructor <init>()V
+    .locals 2
+    .annotation build Landroidx/annotation/RestrictTo;
+        value = {
+            .enum Landroidx/annotation/RestrictTo$Scope;->LIBRARY_GROUP:Landroidx/annotation/RestrictTo$Scope;
+        }
+    .end annotation
+
+    .prologue
+    .line 85
+    move-object v0, p0
+
+    move-object v1, v0
+
+    invoke-direct {v1}, Ljava/lang/Object;-><init>()V
+
+    .line 88
+    return-void
+.end method

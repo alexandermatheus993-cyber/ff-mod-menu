@@ -1,0 +1,203 @@
+.class public final Landroidx/core/widget/TextViewKt$doBeforeTextChanged$$inlined$addTextChangedListener$1;
+.super Ljava/lang/Object;
+.source "TextView.kt"
+
+# interfaces
+.implements Landroid/text/TextWatcher;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingMethod;
+    value = Landroidx/core/widget/TextViewKt;->doBeforeTextChanged(Landroid/widget/TextView;Lkotlin/jvm/functions/Function4;)Landroid/text/TextWatcher;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x19
+    name = null
+.end annotation
+
+.annotation system Ldalvik/annotation/SourceDebugExtension;
+    value = "SMAP\nTextView.kt\nKotlin\n*S Kotlin\n*F\n+ 1 TextView.kt\nandroidx/core/widget/TextViewKt$addTextChangedListener$textWatcher$1\n+ 2 TextView.kt\nandroidx/core/widget/TextViewKt$addTextChangedListener$3\n+ 3 TextView.kt\nandroidx/core/widget/TextViewKt$addTextChangedListener$2\n*L\n1#1,97:1\n78#2:98\n77#3:99\n*E\n"
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    bv = {
+        0x1,
+        0x0,
+        0x3
+    }
+    d1 = {
+        "\u0000\'\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0008\u0002\n\u0002\u0010\r\n\u0000\n\u0002\u0010\u0008\n\u0002\u0008\u0005*\u0001\u0000\u0008\n\u0018\u00002\u00020\u0001J\u0012\u0010\u0002\u001a\u00020\u00032\u0008\u0010\u0004\u001a\u0004\u0018\u00010\u0005H\u0016J*\u0010\u0006\u001a\u00020\u00032\u0008\u0010\u0007\u001a\u0004\u0018\u00010\u00082\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u000c\u001a\u00020\nH\u0016J*\u0010\r\u001a\u00020\u00032\u0008\u0010\u0007\u001a\u0004\u0018\u00010\u00082\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000e\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\nH\u0016\u00a8\u0006\u000f\u00b8\u0006\u0000"
+    }
+    d2 = {
+        "androidx/core/widget/TextViewKt$addTextChangedListener$textWatcher$1",
+        "Landroid/text/TextWatcher;",
+        "afterTextChanged",
+        "",
+        "s",
+        "Landroid/text/Editable;",
+        "beforeTextChanged",
+        "text",
+        "",
+        "start",
+        "",
+        "count",
+        "after",
+        "onTextChanged",
+        "before",
+        "core-ktx_release"
+    }
+    k = 0x1
+    mv = {
+        0x1,
+        0x4,
+        0x1
+    }
+.end annotation
+
+
+# instance fields
+.field final synthetic $beforeTextChanged:Lkotlin/jvm/functions/Function4;
+
+
+# direct methods
+.method public constructor <init>(Lkotlin/jvm/functions/Function4;)V
+    .locals 4
+
+    .prologue
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move-object v2, v0
+
+    move-object v3, v1
+
+    iput-object v3, v2, Landroidx/core/widget/TextViewKt$doBeforeTextChanged$$inlined$addTextChangedListener$1;->$beforeTextChanged:Lkotlin/jvm/functions/Function4;
+
+    .line 80
+    move-object v2, v0
+
+    invoke-direct {v2}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public afterTextChanged(Landroid/text/Editable;)V
+    .locals 4
+    .param p1    # Landroid/text/Editable;
+        .annotation build Lorg/jetbrains/annotations/Nullable;
+        .end annotation
+    .end param
+
+    .prologue
+    .line 82
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move-object v3, v1
+
+    move-object v2, v3
+
+    .line 98
+    nop
+
+    .line 83
+    return-void
+.end method
+
+.method public beforeTextChanged(Ljava/lang/CharSequence;III)V
+    .locals 10
+    .param p1    # Ljava/lang/CharSequence;
+        .annotation build Lorg/jetbrains/annotations/Nullable;
+        .end annotation
+    .end param
+
+    .prologue
+    .line 86
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move v2, p2
+
+    move v3, p3
+
+    move v4, p4
+
+    move-object v5, v0
+
+    iget-object v5, v5, Landroidx/core/widget/TextViewKt$doBeforeTextChanged$$inlined$addTextChangedListener$1;->$beforeTextChanged:Lkotlin/jvm/functions/Function4;
+
+    move-object v6, v1
+
+    move v7, v2
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v7
+
+    move v8, v3
+
+    invoke-static {v8}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v8
+
+    move v9, v4
+
+    invoke-static {v9}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v9
+
+    invoke-interface {v5, v6, v7, v8, v9}, Lkotlin/jvm/functions/Function4;->invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    move-result-object v5
+
+    .line 87
+    return-void
+.end method
+
+.method public onTextChanged(Ljava/lang/CharSequence;III)V
+    .locals 13
+    .param p1    # Ljava/lang/CharSequence;
+        .annotation build Lorg/jetbrains/annotations/Nullable;
+        .end annotation
+    .end param
+
+    .prologue
+    .line 90
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move v2, p2
+
+    move/from16 v3, p3
+
+    move/from16 v4, p4
+
+    move-object v9, v1
+
+    move v10, v2
+
+    move v11, v3
+
+    move v12, v4
+
+    move v5, v12
+
+    move v6, v11
+
+    move v7, v10
+
+    move-object v8, v9
+
+    .line 99
+    nop
+
+    .line 91
+    return-void
+.end method

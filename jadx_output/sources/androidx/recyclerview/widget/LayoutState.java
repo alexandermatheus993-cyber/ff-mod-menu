@@ -1,0 +1,42 @@
+package androidx.recyclerview.widget;
+
+import android.view.View;
+
+/* JADX WARN: Classes with same name are omitted, all sources:
+  classes42.dex
+  classes53.dex
+ */
+/* JADX INFO: loaded from: classes42.dex */
+class LayoutState {
+    static final int INVALID_LAYOUT = Integer.MIN_VALUE;
+    static final int ITEM_DIRECTION_HEAD = -1;
+    static final int ITEM_DIRECTION_TAIL = 1;
+    static final int LAYOUT_END = 1;
+    static final int LAYOUT_START = -1;
+    int mAvailable;
+    int mCurrentPosition;
+    boolean mInfinite;
+    int mItemDirection;
+    int mLayoutDirection;
+    boolean mStopInFocusable;
+    boolean mRecycle = true;
+    int mStartLine = 0;
+    int mEndLine = 0;
+
+    LayoutState() {
+    }
+
+    boolean hasMore(RecyclerView.State state) {
+        return this.mCurrentPosition >= 0 && this.mCurrentPosition < state.getItemCount();
+    }
+
+    View next(RecyclerView.Recycler recycler) {
+        View view = recycler.getViewForPosition(this.mCurrentPosition);
+        this.mCurrentPosition += this.mItemDirection;
+        return view;
+    }
+
+    public String toString() {
+        return "LayoutState{mAvailable=" + this.mAvailable + ", mCurrentPosition=" + this.mCurrentPosition + ", mItemDirection=" + this.mItemDirection + ", mLayoutDirection=" + this.mLayoutDirection + ", mStartLine=" + this.mStartLine + ", mEndLine=" + this.mEndLine + '}';
+    }
+}

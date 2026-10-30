@@ -1,0 +1,21 @@
+package androidx.core.os;
+
+import android.os.Parcel;
+
+/* JADX WARN: Classes with same name are omitted, all sources:
+  classes53.dex
+  classes6.dex
+ */
+/* JADX INFO: loaded from: classes6.dex */
+public final class ParcelCompat {
+    public static boolean readBoolean(Parcel in) {
+        return in.readInt() != 0;
+    }
+
+    public static void writeBoolean(Parcel parcel, boolean z) {
+        parcel.writeInt(z ? 1 : 0);
+    }
+
+    private ParcelCompat() {
+    }
+}

@@ -1,0 +1,23 @@
+package androidx.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/* JADX WARN: Classes with same name are omitted, all sources:
+  classes4.dex
+  classes53.dex
+ */
+/* JADX INFO: loaded from: classes4.dex */
+@Target({ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD, ElementType.LOCAL_VARIABLE, ElementType.ANNOTATION_TYPE})
+@Documented
+@Retention(RetentionPolicy.CLASS)
+public @interface Dimension {
+    public static final int DP = 0;
+    public static final int PX = 1;
+    public static final int SP = 2;
+
+    int unit() default 1;
+}

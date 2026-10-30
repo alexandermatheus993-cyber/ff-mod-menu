@@ -1,0 +1,40 @@
+package androidx.core.os;
+
+import android.os.Build;
+import android.os.Environment;
+import android.util.Log;
+import java.io.File;
+import java.io.IOException;
+
+/* JADX WARN: Classes with same name are omitted, all sources:
+  classes53.dex
+  classes6.dex
+ */
+/* JADX INFO: loaded from: classes6.dex */
+public final class EnvironmentCompat {
+    public static final String MEDIA_UNKNOWN = "unknown";
+    private static final String TAG = "EnvironmentCompat";
+
+    public static String getStorageState(File path) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            return Environment.getExternalStorageState(path);
+        }
+        if (Build.VERSION.SDK_INT >= 19) {
+            return Environment.getStorageState(path);
+        }
+        try {
+            String canonicalPath = path.getCanonicalPath();
+            String canonicalExternal = Environment.getExternalStorageDirectory().getCanonicalPath();
+            if (canonicalPath.startsWith(canonicalExternal)) {
+                return Environment.getExternalStorageState();
+            }
+            return "unknown";
+        } catch (IOException e) {
+            Log.w(TAG, "Failed to resolve canonical path: " + e);
+            return "unknown";
+        }
+    }
+
+    private EnvironmentCompat() {
+    }
+}

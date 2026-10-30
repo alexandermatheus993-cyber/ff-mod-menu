@@ -1,0 +1,11 @@
+    - name: Force Python 3.11 everywhere
+      run: |
+        sudo apt-get remove -y python3.14 python3.14-venv 2>/dev/null || true
+        PYBIN="${{ env.pythonLocation }}/bin"
+        sudo ln -sf "$PYBIN/python3.11" /usr/bin/python3
+        sudo ln -sf "$PYBIN/python3.11" /usr/bin/python
+        sudo ln -sf "$PYBIN/python3.11" /usr/local/bin/python3
+        sudo ln -sf "$PYBIN/python3.11" /usr/local/bin/python
+        python --version
+        python3 --version
+

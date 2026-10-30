@@ -1,0 +1,42 @@
+package androidx.core.graphics.drawable;
+
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Outline;
+import android.graphics.Rect;
+import android.view.Gravity;
+
+/* JADX WARN: Classes with same name are omitted, all sources:
+  classes53.dex
+  classes6.dex
+ */
+/* JADX INFO: loaded from: classes6.dex */
+class RoundedBitmapDrawable21 extends RoundedBitmapDrawable {
+    protected RoundedBitmapDrawable21(Resources res, Bitmap bitmap) {
+        super(res, bitmap);
+    }
+
+    @Override // android.graphics.drawable.Drawable
+    public void getOutline(Outline outline) {
+        updateDstRect();
+        outline.setRoundRect(this.mDstRect, getCornerRadius());
+    }
+
+    @Override // androidx.core.graphics.drawable.RoundedBitmapDrawable
+    public void setMipMap(boolean mipMap) {
+        if (this.mBitmap != null) {
+            this.mBitmap.setHasMipMap(mipMap);
+            invalidateSelf();
+        }
+    }
+
+    @Override // androidx.core.graphics.drawable.RoundedBitmapDrawable
+    public boolean hasMipMap() {
+        return this.mBitmap != null && this.mBitmap.hasMipMap();
+    }
+
+    @Override // androidx.core.graphics.drawable.RoundedBitmapDrawable
+    void gravityCompatApply(int gravity, int bitmapWidth, int bitmapHeight, Rect bounds, Rect outRect) {
+        Gravity.apply(gravity, bitmapWidth, bitmapHeight, bounds, outRect, 0);
+    }
+}

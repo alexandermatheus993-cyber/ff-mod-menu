@@ -1,0 +1,93 @@
+.class abstract Landroidx/work/impl/utils/futures/AbstractFuture$AtomicHelper;
+.super Ljava/lang/Object;
+.source "AbstractFuture.java"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Landroidx/work/impl/utils/futures/AbstractFuture;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x40a
+    name = "AtomicHelper"
+.end annotation
+
+
+# direct methods
+.method private constructor <init>()V
+    .locals 2
+
+    .prologue
+    .line 1064
+    move-object v0, p0
+
+    move-object v1, v0
+
+    invoke-direct {v1}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+.method synthetic constructor <init>(Landroidx/work/impl/utils/futures/AbstractFuture$1;)V
+    .locals 3
+
+    .prologue
+    .line 1064
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move-object v2, v0
+
+    invoke-direct {v2}, Landroidx/work/impl/utils/futures/AbstractFuture$AtomicHelper;-><init>()V
+
+    return-void
+.end method
+
+
+# virtual methods
+.method abstract casListeners(Landroidx/work/impl/utils/futures/AbstractFuture;Landroidx/work/impl/utils/futures/AbstractFuture$Listener;Landroidx/work/impl/utils/futures/AbstractFuture$Listener;)Z
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Landroidx/work/impl/utils/futures/AbstractFuture",
+            "<*>;",
+            "Landroidx/work/impl/utils/futures/AbstractFuture$Listener;",
+            "Landroidx/work/impl/utils/futures/AbstractFuture$Listener;",
+            ")Z"
+        }
+    .end annotation
+.end method
+
+.method abstract casValue(Landroidx/work/impl/utils/futures/AbstractFuture;Ljava/lang/Object;Ljava/lang/Object;)Z
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Landroidx/work/impl/utils/futures/AbstractFuture",
+            "<*>;",
+            "Ljava/lang/Object;",
+            "Ljava/lang/Object;",
+            ")Z"
+        }
+    .end annotation
+.end method
+
+.method abstract casWaiters(Landroidx/work/impl/utils/futures/AbstractFuture;Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;)Z
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Landroidx/work/impl/utils/futures/AbstractFuture",
+            "<*>;",
+            "Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;",
+            "Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;",
+            ")Z"
+        }
+    .end annotation
+.end method
+
+.method abstract putNext(Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;)V
+.end method
+
+.method abstract putThread(Landroidx/work/impl/utils/futures/AbstractFuture$Waiter;Ljava/lang/Thread;)V
+.end method

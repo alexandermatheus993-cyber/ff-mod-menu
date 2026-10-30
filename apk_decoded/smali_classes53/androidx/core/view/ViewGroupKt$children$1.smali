@@ -1,0 +1,114 @@
+.class public final Landroidx/core/view/ViewGroupKt$children$1;
+.super Ljava/lang/Object;
+.source "ViewGroup.kt"
+
+# interfaces
+.implements Lkotlin/sequences/Sequence;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingMethod;
+    value = Landroidx/core/view/ViewGroupKt;->getChildren(Landroid/view/ViewGroup;)Lkotlin/sequences/Sequence;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x19
+    name = null
+.end annotation
+
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Ljava/lang/Object;",
+        "Lkotlin/sequences/Sequence",
+        "<",
+        "Landroid/view/View;",
+        ">;"
+    }
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    bv = {
+        0x1,
+        0x0,
+        0x3
+    }
+    d1 = {
+        "\u0000\u0015\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010)\n\u0000*\u0001\u0000\u0008\n\u0018\u00002\u0008\u0012\u0004\u0012\u00020\u00020\u0001J\u000f\u0010\u0003\u001a\u0008\u0012\u0004\u0012\u00020\u00020\u0004H\u0096\u0002\u00a8\u0006\u0005"
+    }
+    d2 = {
+        "androidx/core/view/ViewGroupKt$children$1",
+        "Lkotlin/sequences/Sequence;",
+        "Landroid/view/View;",
+        "iterator",
+        "",
+        "core-ktx_release"
+    }
+    k = 0x1
+    mv = {
+        0x1,
+        0x4,
+        0x1
+    }
+.end annotation
+
+
+# instance fields
+.field final synthetic $this_children:Landroid/view/ViewGroup;
+
+
+# direct methods
+.method constructor <init>(Landroid/view/ViewGroup;)V
+    .locals 4
+
+    .prologue
+    .line 81
+    move-object v0, p0
+
+    move-object v1, p1
+
+    move-object v2, v0
+
+    move-object v3, v1
+
+    iput-object v3, v2, Landroidx/core/view/ViewGroupKt$children$1;->$this_children:Landroid/view/ViewGroup;
+
+    move-object v2, v0
+
+    invoke-direct {v2}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public iterator()Ljava/util/Iterator;
+    .locals 2
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "()",
+            "Ljava/util/Iterator",
+            "<",
+            "Landroid/view/View;",
+            ">;"
+        }
+    .end annotation
+
+    .annotation build Lorg/jetbrains/annotations/NotNull;
+    .end annotation
+
+    .prologue
+    .line 82
+    move-object v0, p0
+
+    move-object v1, v0
+
+    iget-object v1, v1, Landroidx/core/view/ViewGroupKt$children$1;->$this_children:Landroid/view/ViewGroup;
+
+    invoke-static {v1}, Landroidx/core/view/ViewGroupKt;->iterator(Landroid/view/ViewGroup;)Ljava/util/Iterator;
+
+    move-result-object v1
+
+    move-object v0, v1
+
+    return-object v0
+.end method
