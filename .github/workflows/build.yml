@@ -1,12 +1,57 @@
+name: Build FFH4X APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git python3-pip autoconf libssl-dev libffi-dev libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libjpeg-dev lld
+          sudo ln -sf $(which python3) /usr/local/bin/python
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Accept Android SDK Licenses
+        run: |
+          mkdir -p $ANDROID_HOME/licenses
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_HOME/licenses/android-sdk-license
+          echo "e6b7c2ab7fa2298c15165e9583d0222b24b9a77" >> $ANDROID_HOME/licenses/android-sdk-license
+      - name: Install buildozer
+        run: |
+          pip install --upgrade pip setuptools wheel
+          pip install cython==0.29.36
+          pip install buildozer
       - name: Build APK
         run: |
           cd $GITHUB_WORKSPACE
-          buildozer android debug 2>&1 | tail -100
-          echo "=== Procurando APK ==="
-          find $GITHUB_WORKSPACE -name "*.apk" -type f 2>/dev/null
-          find ~/.buildozer -name "*.apk" -type f 2>/dev/null
+          buildozer android debug 2>&1 | tail -150
+          echo "=== APK files ==="
+          find $GITHUB_WORKSPACE -name "*.apk" 2>/dev/null
+          find /home/runner -name "*.apk" 2>/dev/null
           mkdir -p $GITHUB_WORKSPACE/artifacts
-          cp $(find $GITHUB_WORKSPACE -name "*.apk" -type f | head -1) $GITHUB_WORKSPACE/artifacts/ 2>/dev/null || \
-          cp $(find ~/.buildozer -name "*.apk" -type f | head -1) $GITHUB_WORKSPACE/artifacts/ 2>/dev/null || \
-          echo "APK NOT FOUND"
-
+          APATH=$(find $GITHUB_WORKSPACE ~/.buildozer /home/runner -name "*.apk" -type f 2>/dev/null | head -1)
+          if [ -n "$APATH" ]; then
+            cp "$APATH" $GITHUB_WORKSPACE/artifacts/
+            echo "Copied: $APATH"
+          else
+            echo "NO APK FOUND"
+          fi
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffh4x-apk
+          path: artifacts/*.apk
+          if-no-files-found: warn
